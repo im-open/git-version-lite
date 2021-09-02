@@ -1,5 +1,5 @@
 {
-  "name": "custom-action-template",
+  "name": "git-version-lite",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -9,17 +9,13 @@
     "format": "prettier --write **/*.js",
     "format-check": "prettier --check **/*.js"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run build && npm run format",
-      "pre-push": "npm run format-check"
-    }
-  },
   "keywords": [],
   "author": "wtw",
   "license": "ISC",
   "dependencies": {
-    "@actions/core": "^1.2.7"
+    "@actions/core": "^1.2.7",
+    "@actions/github": "^5.0.0",
+    "semver": "^7.3.5"
   },
   "devDependencies": {
     "esbuild": "^0.12.8",
