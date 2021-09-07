@@ -3,16 +3,32 @@ name: 'JavaScript Action Template'
 description: 'Add description here'
 
 inputs:
-  input-1:
-    description: 'Add a description here'
+  calculate-prerelease-version:
+    description: 'Flag indicating whether to calculate a pre-release version rather than a release version.  Accepts: true|false.'
     required: true
-  input-2:
-    description: 'Add a description here'
+    default: 'false'
+  branch-name:
+    description: 'The name of the branch the tag is being generated for. Required when calculating the pre-release version.'
+    required: false
+  tag-prefix:
+    description: 'By default the action strips the prefixes off, but any value provided here will be prepended to the next calculated version.'
+    required: true
+    default: 'v'
+  default-release-type:
+    description: 'The default release type that should be used when no tags are detected.  Defaults to major.  Accepted values: major|minor|patch'
+    required: true
+    default: 'major'
+  create-ref:
+    description: 'Flag indicating whether the action should create a ref (a release and tag) on the repository.  Accepted values: true|false'
+    required: true
+    default: 'false'
+  github-token:
+    description: Token with permissions to push a ref to the repository
     required: false
 
 outputs:
-  output-1:
-    description: 'Add a description here'
+  VERSION:
+    description: 'The calculated version'
 
 runs:
   using: 'node12'
