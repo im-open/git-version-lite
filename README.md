@@ -33,15 +33,19 @@ The action will increment the minor version if it identifies any of the followin
 | `/^feature:\s.+/m`                | feature: something (*at the beginning of a line*) |
 
 If none of the previous patterns match, the action will increment the patch version.
-    
+
+## Creating a Ref
+The action has a `create-ref` flag and when set to true it uses the GitHub rest API to [create a ref].  This API call results in a release and a tag being created.  This may be desirable in some workflows where you are incrementing on merge but may not work well for others like a CI build where you want to hold off pushing the ref until some steps have completed.
 
 ## Inputs
-| Parameter                      | Is Required                                           | Default | Description                                                                                                                         |
-| ------------------------------ | ----------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `calculate-prerelease-version` | true                                                  | N/A     | Flag indicating whether to calculate a pre-release version rather than a release version.  Accepts: `true\|false`.                  |
-| `branch-name`                  | Required when `calculate-prerelease-version` is true. | N/A     | The name of the branch the next version is being generated for. Required when calculating the pre-release version.                  |
-| `tag-prefix`                   | false                                                 | N/A     | By default the action strips the prefixes off, but any value provided here will be pre-pended to the next calculated version.       |
-| `default-release-type`         | false                                                 | `major` | The default release type that should be used when no tags are detected.  Defaults to major.  Accepted values: `major\|minor\|patch` |
+| Parameter                      | Is Required                                            | Default | Description                                                                                                                                                                                                                                                                                                |
+| ------------------------------ | ------------------------------------------------------ | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tag-prefix`                   | false                                                  | `v`     | By default the action strips the prefixes off, but any value provided here will be prepended to the next calculated version.<br/><br/>GitHub indicates it is common practice to prefix your version names with the letter `v` (which is the default).  If you do not want a prefix use `tag-prefix: none`. |
+| `calculate-prerelease-version` | false                                                  | `false` | Flag indicating whether to calculate a pre-release version rather than a release version.  Accepts: `true\|false`.                                                                                                                                                                                         |
+| `branch-name`                  | Required when<br/>`calculate-prerelease-version: true` | N/A     | The name of the branch the next pre-release version is being generated for. Required when calculating the pre-release version.                                                                                                                                                                             |
+| `create-ref`                   | false                                                  | `false` | Flag indicating whether the action should [create a ref] (a release and tag) on the repository.    Accepted values: `true\|false`.                                                                                                                                                                         |
+| `github-token`                 | Required when<br/>`create-ref: true`                   | N/A     | Token with permissions to create a ref on the repository.                                                                                                                                                                                                                                                  |
+| `default-release-type`         | false                                                  | `major` | The default release type that should be used when no tags are detected.  Defaults to major.  Accepted values: `major\|minor\|patch`.                                                                                                                                                                       |
 
 ## Outputs
 | Output              | Description                                       |
@@ -71,9 +75,11 @@ jobs:
         uses: im-open/git-version-lite@v1.0.0
         with:
           calculate-prerelease-version: true
-          branch-name: ${{ github.head_ref }}   # github.head_ref works when the trigger is pull_request
-          tag-prefix: v                         # Prepend a v to any calculated release/pre-release version
-          default-release-type: major           # If no tags are found, default to doing a major increment
+          branch-name: ${{ github.head_ref }}       # github.head_ref works when the trigger is pull_request
+          tag-prefix: v                             # Prepend a v to any calculated release/pre-release version
+          default-release-type: major               # If no tags are found, default to doing a major increment
+          create-ref: true                          # Will create a release/tag on the repo
+          github-token: ${{ secrets.GITHUB_TOKEN }} # Required when creating a ref
       
       - run: echo "The next version is ${{ env.VERSION }}"
 
@@ -101,3 +107,5 @@ This project has adopted the [im-open's Code of Conduct](https://github.com/im-o
 ## License
 
 Copyright &copy; 2021, Extend Health, LLC. Code released under the [MIT license](LICENSE).
+
+[create a ref]: https://docs.github.com/en/rest/reference/git#create-a-reference
