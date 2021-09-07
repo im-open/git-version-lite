@@ -8,6 +8,7 @@ var require_utils = __commonJS({
   'node_modules/@actions/core/lib/utils.js'(exports2) {
     'use strict';
     Object.defineProperty(exports2, '__esModule', { value: true });
+    exports2.toCommandProperties = exports2.toCommandValue = void 0;
     function toCommandValue(input) {
       if (input === null || input === void 0) {
         return '';
@@ -17,6 +18,19 @@ var require_utils = __commonJS({
       return JSON.stringify(input);
     }
     exports2.toCommandValue = toCommandValue;
+    function toCommandProperties(annotationProperties) {
+      if (!Object.keys(annotationProperties).length) {
+        return {};
+      }
+      return {
+        title: annotationProperties.title,
+        line: annotationProperties.startLine,
+        endLine: annotationProperties.endLine,
+        col: annotationProperties.startColumn,
+        endColumn: annotationProperties.endColumn
+      };
+    }
+    exports2.toCommandProperties = toCommandProperties;
   }
 });
 
@@ -24,18 +38,46 @@ var require_utils = __commonJS({
 var require_command = __commonJS({
   'node_modules/@actions/core/lib/command.js'(exports2) {
     'use strict';
+    var __createBinding =
+      (exports2 && exports2.__createBinding) ||
+      (Object.create
+        ? function (o, m, k, k2) {
+            if (k2 === void 0) k2 = k;
+            Object.defineProperty(o, k2, {
+              enumerable: true,
+              get: function () {
+                return m[k];
+              }
+            });
+          }
+        : function (o, m, k, k2) {
+            if (k2 === void 0) k2 = k;
+            o[k2] = m[k];
+          });
+    var __setModuleDefault =
+      (exports2 && exports2.__setModuleDefault) ||
+      (Object.create
+        ? function (o, v) {
+            Object.defineProperty(o, 'default', { enumerable: true, value: v });
+          }
+        : function (o, v) {
+            o['default'] = v;
+          });
     var __importStar =
       (exports2 && exports2.__importStar) ||
       function (mod) {
         if (mod && mod.__esModule) return mod;
         var result = {};
         if (mod != null) {
-          for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+          for (var k in mod)
+            if (k !== 'default' && Object.hasOwnProperty.call(mod, k))
+              __createBinding(result, mod, k);
         }
-        result['default'] = mod;
+        __setModuleDefault(result, mod);
         return result;
       };
     Object.defineProperty(exports2, '__esModule', { value: true });
+    exports2.issue = exports2.issueCommand = void 0;
     var os = __importStar(require('os'));
     var utils_1 = require_utils();
     function issueCommand(command, properties, message) {
@@ -103,18 +145,46 @@ var require_command = __commonJS({
 var require_file_command = __commonJS({
   'node_modules/@actions/core/lib/file-command.js'(exports2) {
     'use strict';
+    var __createBinding =
+      (exports2 && exports2.__createBinding) ||
+      (Object.create
+        ? function (o, m, k, k2) {
+            if (k2 === void 0) k2 = k;
+            Object.defineProperty(o, k2, {
+              enumerable: true,
+              get: function () {
+                return m[k];
+              }
+            });
+          }
+        : function (o, m, k, k2) {
+            if (k2 === void 0) k2 = k;
+            o[k2] = m[k];
+          });
+    var __setModuleDefault =
+      (exports2 && exports2.__setModuleDefault) ||
+      (Object.create
+        ? function (o, v) {
+            Object.defineProperty(o, 'default', { enumerable: true, value: v });
+          }
+        : function (o, v) {
+            o['default'] = v;
+          });
     var __importStar =
       (exports2 && exports2.__importStar) ||
       function (mod) {
         if (mod && mod.__esModule) return mod;
         var result = {};
         if (mod != null) {
-          for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+          for (var k in mod)
+            if (k !== 'default' && Object.hasOwnProperty.call(mod, k))
+              __createBinding(result, mod, k);
         }
-        result['default'] = mod;
+        __setModuleDefault(result, mod);
         return result;
       };
     Object.defineProperty(exports2, '__esModule', { value: true });
+    exports2.issueCommand = void 0;
     var fs = __importStar(require('fs'));
     var os = __importStar(require('os'));
     var utils_1 = require_utils();
@@ -138,6 +208,44 @@ var require_file_command = __commonJS({
 var require_core = __commonJS({
   'node_modules/@actions/core/lib/core.js'(exports2) {
     'use strict';
+    var __createBinding =
+      (exports2 && exports2.__createBinding) ||
+      (Object.create
+        ? function (o, m, k, k2) {
+            if (k2 === void 0) k2 = k;
+            Object.defineProperty(o, k2, {
+              enumerable: true,
+              get: function () {
+                return m[k];
+              }
+            });
+          }
+        : function (o, m, k, k2) {
+            if (k2 === void 0) k2 = k;
+            o[k2] = m[k];
+          });
+    var __setModuleDefault =
+      (exports2 && exports2.__setModuleDefault) ||
+      (Object.create
+        ? function (o, v) {
+            Object.defineProperty(o, 'default', { enumerable: true, value: v });
+          }
+        : function (o, v) {
+            o['default'] = v;
+          });
+    var __importStar =
+      (exports2 && exports2.__importStar) ||
+      function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) {
+          for (var k in mod)
+            if (k !== 'default' && Object.hasOwnProperty.call(mod, k))
+              __createBinding(result, mod, k);
+        }
+        __setModuleDefault(result, mod);
+        return result;
+      };
     var __awaiter =
       (exports2 && exports2.__awaiter) ||
       function (thisArg, _arguments, P, generator) {
@@ -169,18 +277,29 @@ var require_core = __commonJS({
           step((generator = generator.apply(thisArg, _arguments || [])).next());
         });
       };
-    var __importStar =
-      (exports2 && exports2.__importStar) ||
-      function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) {
-          for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-        }
-        result['default'] = mod;
-        return result;
-      };
     Object.defineProperty(exports2, '__esModule', { value: true });
+    exports2.getState =
+      exports2.saveState =
+      exports2.group =
+      exports2.endGroup =
+      exports2.startGroup =
+      exports2.info =
+      exports2.notice =
+      exports2.warning =
+      exports2.error =
+      exports2.debug =
+      exports2.isDebug =
+      exports2.setFailed =
+      exports2.setCommandEcho =
+      exports2.setOutput =
+      exports2.getBooleanInput =
+      exports2.getMultilineInput =
+      exports2.getInput =
+      exports2.addPath =
+      exports2.setSecret =
+      exports2.exportVariable =
+      exports2.ExitCode =
+        void 0;
     var command_1 = require_command();
     var file_command_1 = require_file_command();
     var utils_1 = require_utils();
@@ -223,9 +342,29 @@ var require_core = __commonJS({
       if (options && options.required && !val) {
         throw new Error(`Input required and not supplied: ${name}`);
       }
+      if (options && options.trimWhitespace === false) {
+        return val;
+      }
       return val.trim();
     }
     exports2.getInput = getInput;
+    function getMultilineInput(name, options) {
+      const inputs = getInput(name, options)
+        .split('\n')
+        .filter(x => x !== '');
+      return inputs;
+    }
+    exports2.getMultilineInput = getMultilineInput;
+    function getBooleanInput(name, options) {
+      const trueValue = ['true', 'True', 'TRUE'];
+      const falseValue = ['false', 'False', 'FALSE'];
+      const val = getInput(name, options);
+      if (trueValue.includes(val)) return true;
+      if (falseValue.includes(val)) return false;
+      throw new TypeError(`Input does not meet YAML 1.2 "Core Schema" specification: ${name}
+Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
+    }
+    exports2.getBooleanInput = getBooleanInput;
     function setOutput(name, value) {
       process.stdout.write(os.EOL);
       command_1.issueCommand('set-output', { name }, value);
@@ -248,14 +387,30 @@ var require_core = __commonJS({
       command_1.issueCommand('debug', {}, message);
     }
     exports2.debug = debug;
-    function error(message) {
-      command_1.issue('error', message instanceof Error ? message.toString() : message);
+    function error(message, properties = {}) {
+      command_1.issueCommand(
+        'error',
+        utils_1.toCommandProperties(properties),
+        message instanceof Error ? message.toString() : message
+      );
     }
     exports2.error = error;
-    function warning(message) {
-      command_1.issue('warning', message instanceof Error ? message.toString() : message);
+    function warning(message, properties = {}) {
+      command_1.issueCommand(
+        'warning',
+        utils_1.toCommandProperties(properties),
+        message instanceof Error ? message.toString() : message
+      );
     }
     exports2.warning = warning;
+    function notice(message, properties = {}) {
+      command_1.issueCommand(
+        'notice',
+        utils_1.toCommandProperties(properties),
+        message instanceof Error ? message.toString() : message
+      );
+    }
+    exports2.notice = notice;
     function info(message) {
       process.stdout.write(message + os.EOL);
     }
