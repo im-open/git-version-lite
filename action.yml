@@ -1,6 +1,6 @@
-name: 'JavaScript Action Template'
+name: 'git-version-lite'
 
-description: 'Add description here'
+description: 'An action to calculate the next tag for the repository based on commit messages.'
 
 inputs:
   calculate-prerelease-version:
@@ -14,6 +14,10 @@ inputs:
     description: 'By default the action strips the prefixes off, but any value provided here will be prepended to the next calculated version.'
     required: true
     default: 'v'
+  fallback-to-no-prefix-search:
+    description: 'Flag indicating whether it should fallback to a prefix-less search if no tags are found with the current prefix.  Helpful when starting to use prefixes with tags.  Accepted values: true|false.'
+    required: true
+    default: 'true'
   default-release-type:
     description: 'The default release type that should be used when no tags are detected.  Defaults to major.  Accepted values: major|minor|patch'
     required: true
@@ -27,7 +31,7 @@ inputs:
     required: false
 
 outputs:
-  VERSION:
+  NEXT_VERSION:
     description: 'The calculated version'
 
 runs:

@@ -5996,18 +5996,38 @@ var require_git_commands = __commonJS({
       return processResult.stdout.toString().trim();
     }
     module2.exports = {
-      listTags: () => {
-        let tags = git('tag');
-        if (!tags) {
-          core2.warning(
-            'There do not appear to be any tags on the repository.  If that is not accurate, ensure fetch-depth: 0 is set on the checkout action.'
-          );
-          return [];
+      listTags: (prefix, fallbackToNoPrefixSearch2) => {
+        let args;
+        if (prefix && prefix.length > 0) {
+          args = ['-l', `${prefix}*`];
+          core2.info(`Searching for tags with prefix '${prefix}'...`);
+        } else {
+          args = [];
+          core2.info(`Searching for tags...`);
         }
-        core2.info(`The following tags exist on the repository:
+        try {
+          let tags = git('tag', args);
+          if (!tags) {
+            if (fallbackToNoPrefixSearch2) {
+              core2.info(
+                `No tags were found with the prefix '${prefix}'.  Falling back to searching with no prefix...`
+              );
+              tags = git('tag');
+            }
+            if (!tags) {
+              const noTagsMsg =
+                'There do not appear to be any tags on the repository.  If that is not accurate, ensure fetch-depth: 0 is set on the checkout action.';
+              core2.warning(noTagsMsg);
+              return [];
+            }
+          }
+          core2.info(`The following tags exist on the repository:
 ${tags}
 `);
-        return tags.split('\n');
+          return tags.split('\n');
+        } catch (error) {
+          core2.setFailed(`An error occurred listing the tags for the repository: ${error}`);
+        }
       },
       isAncestor: (ancestorCommitish, descendantCommitish) => {
         let processResult = spawnSync('git', [
@@ -8437,8 +8457,8 @@ var require_version = __commonJS({
         /^feature:\s.+/m
       ]
     };
-    function getPriorReleaseCommit() {
-      let tags = git.listTags();
+    function getPriorReleaseCommit(tagPrefix2, fallbackToNoPrefixSearch2) {
+      let tags = git.listTags(tagPrefix2, fallbackToNoPrefixSearch2);
       if (!tags || tags.length === 0) {
         return null;
       }
@@ -8510,10 +8530,10 @@ var require_version = __commonJS({
         minute
       )}${twoDigit(second)}`;
     }
-    function nextReleaseVersion2(defaultReleaseType2, tagPrefix2) {
+    function nextReleaseVersion2(defaultReleaseType2, tagPrefix2, fallbackToNoPrefixSearch2) {
       let baseCommit;
       try {
-        baseCommit = getPriorReleaseCommit();
+        baseCommit = getPriorReleaseCommit(tagPrefix2, fallbackToNoPrefixSearch2);
       } catch (error) {
         core2.info(`An error occurred retrieving the tags for the repository: ${error}`);
       }
@@ -8537,10 +8557,15 @@ Prior release version: ${priorReleaseVersion}`);
       core2.info(`Next Release Version: ${nextReleaseVersion3}`);
       return nextReleaseVersion3;
     }
-    function nextPrereleaseVersion2(label, defaultReleaseType2, tagPrefix2) {
+    function nextPrereleaseVersion2(
+      label,
+      defaultReleaseType2,
+      tagPrefix2,
+      fallbackToNoPrefixSearch2
+    ) {
       let baseCommit;
       try {
-        baseCommit = getPriorReleaseCommit();
+        baseCommit = getPriorReleaseCommit(tagPrefix2, fallbackToNoPrefixSearch2);
       } catch (error) {
         core2.info(`An error occurred retrieving the tags for the repository: ${error}`);
       }
@@ -8583,6 +8608,7 @@ var calculatePrereleaseVersion = core.getInput('calculate-prerelease-version') =
 var branchName = core.getInput('branch-name');
 var defaultReleaseType = core.getInput('default-release-type').toLowerCase();
 var createRef = core.getInput('create-ref') === 'true';
+var fallbackToNoPrefixSearch = core.getInput('fallback-to-no-prefix-search') === 'true';
 var token = core.getInput('github-token');
 var tagPrefix = core.getInput('tag-prefix');
 async function createRefOnGitHub(versionToBuild) {
@@ -8629,16 +8655,21 @@ async function run() {
       }
       core.info(`Calculating a pre-release version for ${branchName}...`);
       const prereleaseLabel = branchName.replace('refs/heads/', '').replace(/[^a-zA-Z0-9-]/g, '-');
-      versionToBuild = nextPrereleaseVersion(prereleaseLabel, defaultReleaseType, tagPrefix);
+      versionToBuild = nextPrereleaseVersion(
+        prereleaseLabel,
+        defaultReleaseType,
+        tagPrefix,
+        fallbackToNoPrefixSearch
+      );
     } else {
       core.info(`Calculating a release version...`);
-      versionToBuild = nextReleaseVersion(defaultReleaseType, tagPrefix);
+      versionToBuild = nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch);
     }
     if (createRef) {
       await createRefOnGitHub(versionToBuild);
     }
-    core.setOutput('VERSION', versionToBuild);
-    core.exportVariable('VERSION', versionToBuild);
+    core.setOutput('NEXT_VERSION', versionToBuild);
+    core.exportVariable('NEXT_VERSION', versionToBuild);
   } catch (error) {
     const versionTxt = calculatePrereleaseVersion ? 'pre-release' : 'release';
     core.setFailed(`An error occurred calculating the next ${versionTxt} version: ${error}`);
