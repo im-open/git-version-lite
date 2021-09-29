@@ -16,17 +16,40 @@ module.exports = {
   /**
    * @returns {string[]}
    */
-  listTags: () => {
-    let tags = git('tag');
-    if (!tags) {
-      core.warning(
-        'There do not appear to be any tags on the repository.  If that is not accurate, ensure fetch-depth: 0 is set on the checkout action.'
-      );
-      return [];
+  listTags: (prefix, fallbackToNoPrefixSearch) => {
+    let args;
+    if (prefix && prefix.length > 0) {
+      args = ['-l', `${prefix}*`];
+      core.info(`Searching for tags with prefix '${prefix}'...`);
+    } else {
+      args = [];
+      core.info(`Searching for tags...`);
     }
 
-    core.info(`The following tags exist on the repository:\n${tags}\n`);
-    return tags.split('\n');
+    try {
+      let tags = git('tag', args);
+
+      if (!tags) {
+        if (fallbackToNoPrefixSearch) {
+          core.info(
+            `No tags were found with the prefix '${prefix}'.  Falling back to searching with no prefix...`
+          );
+          tags = git('tag');
+        }
+
+        if (!tags) {
+          const noTagsMsg =
+            'There do not appear to be any tags on the repository.  If that is not accurate, ensure fetch-depth: 0 is set on the checkout action.';
+          core.warning(noTagsMsg);
+          return [];
+        }
+      }
+
+      core.info(`The following tags exist on the repository:\n${tags}\n`);
+      return tags.split('\n');
+    } catch (error) {
+      core.setFailed(`An error occurred listing the tags for the repository: ${error}`);
+    }
   },
 
   /**

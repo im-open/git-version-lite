@@ -41,6 +41,7 @@ The action has a `create-ref` flag and when set to true it uses the GitHub rest 
 | Parameter                      | Is Required                                            | Default | Description                                                                                                                                                                                                                                                                                                |
 | ------------------------------ | ------------------------------------------------------ | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `tag-prefix`                   | false                                                  | `v`     | By default the action strips the prefixes off, but any value provided here will be prepended to the next calculated version.<br/><br/>GitHub indicates it is common practice to prefix your version names with the letter `v` (which is the default).  If you do not want a prefix use `tag-prefix: none`. |
+| `fallback-to-no-prefix-search` | false                                                  | `true`  | Flag indicating whether it should fallback to a prefix-less search if no tags are found with the current prefix.  Helpful when starting to use prefixes with tags.  Accepted values: true\|false.                                                                                                          |
 | `calculate-prerelease-version` | false                                                  | `false` | Flag indicating whether to calculate a pre-release version rather than a release version.  Accepts: `true\|false`.                                                                                                                                                                                         |
 | `branch-name`                  | Required when<br/>`calculate-prerelease-version: true` | N/A     | The name of the branch the next pre-release version is being generated for. Required when calculating the pre-release version.                                                                                                                                                                             |
 | `create-ref`                   | false                                                  | `false` | Flag indicating whether the action should [create a ref] (a release and tag) on the repository.    Accepted values: `true\|false`.                                                                                                                                                                         |
@@ -48,10 +49,10 @@ The action has a `create-ref` flag and when set to true it uses the GitHub rest 
 | `default-release-type`         | false                                                  | `major` | The default release type that should be used when no tags are detected.  Defaults to major.  Accepted values: `major\|minor\|patch`.                                                                                                                                                                       |
 
 ## Outputs
-| Output              | Description                                       |
-| ------------------- | ------------------------------------------------- |
-| `env`.`VERSION`     | The calculated Version as an environment variable |
-| `outputs`.`VERSION` | The calculated Version as an output               |
+| Output                   | Description                                       |
+| ------------------------ | ------------------------------------------------- |
+| `env`.`NEXT_VERSION`     | The calculated Version as an environment variable |
+| `outputs`.`NEXT_VERSION` | The calculated Version as an output               |
 
 ## Usage Examples
 
@@ -64,7 +65,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     outputs:
-      VERSION: ${{ steps.get-version.outputs.VERSION }}
+      NEXT_VERSION: ${{ steps.get-version.outputs.NEXT_VERSION }}
 
     steps:
       - uses: actions/checkout@v2
@@ -72,16 +73,17 @@ jobs:
           fetch-depth: 0                        # Includes all history for all branches and tags
 
       - id: get-version
-        uses: im-open/git-version-lite@v1.0.0
+        uses: im-open/git-version-lite@v2.0.0
         with:
           calculate-prerelease-version: true
           branch-name: ${{ github.head_ref }}       # github.head_ref works when the trigger is pull_request
           tag-prefix: v                             # Prepend a v to any calculated release/pre-release version
+          fallback-to-no-prefix-search: true        # Set to true can be helpful when starting to add tag prefixes
           default-release-type: major               # If no tags are found, default to doing a major increment
           create-ref: true                          # Will create a release/tag on the repo
           github-token: ${{ secrets.GITHUB_TOKEN }} # Required when creating a ref
       
-      - run: echo "The next version is ${{ env.VERSION }}"
+      - run: echo "The next version is ${{ env.NEXT_VERSION }}"
 
 ```
 

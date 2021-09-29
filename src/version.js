@@ -22,9 +22,9 @@ const commitPatterns = {
  * Returns an object describing the commit of the prior release by looking for the most recent tag that is a "stable" semver
  * @returns {{abbreviatedCommitHash: string, authorDate: Date, committerDate: Date, semver: string}}
  */
-function getPriorReleaseCommit() {
+function getPriorReleaseCommit(tagPrefix, fallbackToNoPrefixSearch) {
   // get all the tags in the repository that represent semver release versions, sorted with the highest release version first.
-  let tags = git.listTags();
+  let tags = git.listTags(tagPrefix, fallbackToNoPrefixSearch);
   if (!tags || tags.length === 0) {
     return null;
   }
@@ -118,11 +118,11 @@ function dateToPreReleaseComponent(input) {
  * @param tagPrefix {string} The value to pre-pend to the calculated release
  * @returns {string} a SemVer release version based on the Git history since the last tagged release
  */
-function nextReleaseVersion(defaultReleaseType, tagPrefix) {
+function nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch) {
   let baseCommit;
   try {
     // start from the most-recent release version
-    baseCommit = getPriorReleaseCommit();
+    baseCommit = getPriorReleaseCommit(tagPrefix, fallbackToNoPrefixSearch);
   } catch (error) {
     core.info(`An error occurred retrieving the tags for the repository: ${error}`);
   }
@@ -154,11 +154,11 @@ function nextReleaseVersion(defaultReleaseType, tagPrefix) {
  * @param tagPrefix {string} The value to pre-pend to the calculated release
  * @returns {string} a SemVer pre-release version based on the Git history since the last tagged release
  */
-function nextPrereleaseVersion(label, defaultReleaseType, tagPrefix) {
+function nextPrereleaseVersion(label, defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch) {
   let baseCommit;
   try {
     // start from the most-recent release version
-    baseCommit = getPriorReleaseCommit();
+    baseCommit = getPriorReleaseCommit(tagPrefix, fallbackToNoPrefixSearch);
   } catch (error) {
     core.info(`An error occurred retrieving the tags for the repository: ${error}`);
   }

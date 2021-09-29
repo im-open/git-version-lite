@@ -7,6 +7,7 @@ const calculatePrereleaseVersion = core.getInput('calculate-prerelease-version')
 const branchName = core.getInput('branch-name');
 const defaultReleaseType = core.getInput('default-release-type').toLowerCase();
 const createRef = core.getInput('create-ref') === 'true';
+const fallbackToNoPrefixSearch = core.getInput('fallback-to-no-prefix-search') === 'true';
 const token = core.getInput('github-token');
 let tagPrefix = core.getInput('tag-prefix');
 
@@ -63,18 +64,23 @@ async function run() {
 
       //This regex will strip out anything that's not a-z, 0-9 or the - character
       const prereleaseLabel = branchName.replace('refs/heads/', '').replace(/[^a-zA-Z0-9-]/g, '-');
-      versionToBuild = nextPrereleaseVersion(prereleaseLabel, defaultReleaseType, tagPrefix);
+      versionToBuild = nextPrereleaseVersion(
+        prereleaseLabel,
+        defaultReleaseType,
+        tagPrefix,
+        fallbackToNoPrefixSearch
+      );
     } else {
       core.info(`Calculating a release version...`);
-      versionToBuild = nextReleaseVersion(defaultReleaseType, tagPrefix);
+      versionToBuild = nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch);
     }
 
     if (createRef) {
       await createRefOnGitHub(versionToBuild);
     }
 
-    core.setOutput('VERSION', versionToBuild);
-    core.exportVariable('VERSION', versionToBuild);
+    core.setOutput('NEXT_VERSION', versionToBuild);
+    core.exportVariable('NEXT_VERSION', versionToBuild);
   } catch (error) {
     const versionTxt = calculatePrereleaseVersion ? 'pre-release' : 'release';
     core.setFailed(`An error occurred calculating the next ${versionTxt} version: ${error}`);
