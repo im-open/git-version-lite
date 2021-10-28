@@ -32,7 +32,7 @@ function getPriorReleaseCommit(tagPrefix, fallbackToNoPrefixSearch) {
   const semverReleaseTags = tags
     .map(tag => ({
       tag: tag,
-      semverValue: semver.clean(tag, true)
+      semverValue: semver.clean(tag.startsWith(tagPrefix) ? tag.slice(tagPrefix.length) : tag, true)
     }))
     // only keep the ones that look like semver release versions
     .filter(tagObj => tagObj.semverValue !== null && semver.prerelease(tagObj.semverValue) === null)

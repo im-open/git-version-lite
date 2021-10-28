@@ -8465,7 +8465,10 @@ var require_version = __commonJS({
       const semverReleaseTags = tags
         .map(tag => ({
           tag,
-          semverValue: semver.clean(tag, true)
+          semverValue: semver.clean(
+            tag.startsWith(tagPrefix2) ? tag.slice(tagPrefix2.length) : tag,
+            true
+          )
         }))
         .filter(
           tagObj => tagObj.semverValue !== null && semver.prerelease(tagObj.semverValue) === null

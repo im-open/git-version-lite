@@ -73,7 +73,7 @@ jobs:
           fetch-depth: 0                        # Includes all history for all branches and tags
 
       - id: get-version
-        uses: im-open/git-version-lite@v2.0.0
+        uses: im-open/git-version-lite@v2.0.1
         with:
           calculate-prerelease-version: true
           branch-name: ${{ github.head_ref }}       # github.head_ref works when the trigger is pull_request
