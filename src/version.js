@@ -180,7 +180,7 @@ function nextPrereleaseVersion(label, defaultReleaseType, tagPrefix, fallbackToN
     core.info(`Release Type: ${releaseType}`);
   }
   let nextReleaseVersion = semver.inc(priorReleaseVersion, releaseType);
-  let prereleaseVersion = `${tagPrefix}${nextReleaseVersion}-${label}.${formattedDate}`;
+  let prereleaseVersion = `${tagPrefix}${nextReleaseVersion}-${label}-${formattedDate}`;
   core.info(`Tag Prefix: '${tagPrefix}'`);
   core.info(`Cleaned Branch Name: '${label}'`);
   core.info(`Next Pre-release Version: ${prereleaseVersion}`);
