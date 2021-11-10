@@ -20,7 +20,7 @@ For pre-release versions the commits on the current branch are used, and for rel
 The action will increment the major version if it identifies any of the following patterns in the commit body or notes:
 | Pattern                            | Examples                           |
 | ---------------------------------- | ---------------------------------- |
-| `/\+semver:\s*(breaking\|major)/i` | +semver:breaking, +semver.major    |
+| `/\+semver:\s*(breaking\|major)/i` | +semver:breaking, +semver:major    |
 | `/BREAKING CHANGES?:?/`            | BREAKING CHANGE:, BREAKING CHANGES |
 
 The action will increment the minor version if it identifies any of the following patterns in the commit body or notes:
