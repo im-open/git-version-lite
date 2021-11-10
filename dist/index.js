@@ -6024,7 +6024,7 @@ var require_git_commands = __commonJS({
           core2.info(`The following tags exist on the repository:
 ${tags}
 `);
-          return tags.split('\n');
+          return tags.split('\n').map(t => t.trim());
         } catch (error) {
           core2.setFailed(`An error occurred listing the tags for the repository: ${error}`);
         }
