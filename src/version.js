@@ -46,6 +46,8 @@ function getPriorReleaseCommit(tagPrefix, fallbackToNoPrefixSearch) {
         ...commitMetadata,
         semver: candidateTagObj.semverValue
       };
+    } else {
+      core.info(`Skipping ${candidateTagObj.tag} because it is not an ancestor of HEAD`);
     }
   }
   return null;
