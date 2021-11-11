@@ -8482,6 +8482,8 @@ var require_version = __commonJS({
             ...commitMetadata,
             semver: candidateTagObj.semverValue
           };
+        } else {
+          core2.info(`Skipping ${candidateTagObj.tag} because it is not an ancestor of HEAD`);
         }
       }
       return null;
