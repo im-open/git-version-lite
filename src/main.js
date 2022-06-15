@@ -81,6 +81,11 @@ async function run() {
 
     core.setOutput('NEXT_VERSION', versionToBuild);
     core.exportVariable('NEXT_VERSION', versionToBuild);
+
+    let versionToBuildNoPrefix =
+      tagPrefix.length > 0 ? versionToBuild.substring(tagPrefix.length) : versionToBuild;
+    core.setOutput('NEXT_VERSION_NO_PREFIX', versionToBuildNoPrefix);
+    core.exportVariable('NEXT_VERSION_NO_PREFIX', versionToBuildNoPrefix);
   } catch (error) {
     const versionTxt = calculatePrereleaseVersion ? 'pre-release' : 'release';
     core.setFailed(`An error occurred calculating the next ${versionTxt} version: ${error}`);
