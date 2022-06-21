@@ -64,10 +64,12 @@ The action has a `create-ref` flag and when set to true it uses the GitHub rest 
 | `default-release-type`         | false                                                  | `major` | The default release type that should be used when no tags are detected.  Defaults to major.  Accepted values: `major\|minor\|patch`.                                                                                                                                                                       |
 
 ## Outputs
-| Output                   | Description                                       |
-| ------------------------ | ------------------------------------------------- |
-| `env`.`NEXT_VERSION`     | The calculated Version as an environment variable |
-| `outputs`.`NEXT_VERSION` | The calculated Version as an output               |
+| Output                             | Description                                                              |
+| ---------------------------------- | ------------------------------------------------------------------------ |
+| `env`.`NEXT_VERSION`               | The calculated version as an environment variable                        |
+| `env`.`NEXT_VERSION_NO_PREFIX`     | The calculated version as an environment variable without the tag prefix |
+| `outputs`.`NEXT_VERSION`           | The calculated version as an output                                      |
+| `outputs`.`NEXT_VERSION_NO_PREFIX` | The calculated version as an output without the tag prefix               |
 
 ## Usage Examples
 
@@ -98,7 +100,9 @@ jobs:
           create-ref: true                          # Will create a release/tag on the repo
           github-token: ${{ secrets.GITHUB_TOKEN }} # Required when creating a ref
       
-      - run: echo "The next version is ${{ env.NEXT_VERSION }}"
+      - run: |
+          echo "The next version is ${{ env.NEXT_VERSION }}"
+          echo "The next version without the prefix is ${{ env.NEXT_VERSION_NO_PREFIX }}"
 
 ```
 
