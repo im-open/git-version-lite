@@ -90,7 +90,7 @@ jobs:
           fetch-depth: 0                        # Includes all history for all branches and tags
 
       - id: get-version
-        uses: im-open/git-version-lite@v2.0.10
+        uses: im-open/git-version-lite@v2.1.0
         with:
           calculate-prerelease-version: true
           branch-name: ${{ github.head_ref }}       # github.head_ref works when the trigger is pull_request
@@ -131,7 +131,7 @@ its dependencies into a single file located in the `dist` folder.
 
 ### Incrementing the Version
 
-This action uses [git-version-lite] to examine commit messages to determine whether to perform a major, minor or patch increment on merge.  The following table provides the fragment that should be included in a commit message to active different increment strategies.
+This action uses [git-version-lite] (the prior released version of itself!) to examine commit messages to determine whether to perform a major, minor or patch increment on merge.  The following table provides the fragment that should be included in a commit message to active different increment strategies.
 | Increment Type | Commit Message Fragment                     |
 | -------------- | ------------------------------------------- |
 | major          | +semver:breaking                            |
