@@ -85,7 +85,7 @@ jobs:
       NEXT_VERSION: ${{ steps.get-version.outputs.NEXT_VERSION }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0                        # Includes all history for all branches and tags
 

@@ -15,6 +15,12 @@ on:
   #      reviewed, approved by a CODEOWNER and merged
   pull_request_target:
     types: [closed]
+    paths:
+      - 'dist/**'
+      - 'src/**'
+      - 'action.yml'
+      - 'package.json'
+      - 'package-lock.json'
 
 jobs:
   increment-version:
