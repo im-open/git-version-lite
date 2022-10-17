@@ -85,12 +85,12 @@ jobs:
       NEXT_VERSION: ${{ steps.get-version.outputs.NEXT_VERSION }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0                        # Includes all history for all branches and tags
 
       - id: get-version
-        uses: im-open/git-version-lite@v2.1.0
+        uses: im-open/git-version-lite@v2.1.1
         with:
           calculate-prerelease-version: true
           branch-name: ${{ github.head_ref }}       # github.head_ref works when the trigger is pull_request
