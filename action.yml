@@ -30,7 +30,7 @@ inputs:
     description: Token with permissions to push a ref to the repository
     required: false
   use-unix-timestamp:
-    description: 'Flag indicating whether to use a unix timestamp when formatting the commit date.  Accepts: true|false.'
+    description: 'Flag indicating whether to convert dates to unix timestamps.  Accepts: true|false.'
     required: false
     default: 'false'
 
