@@ -10,6 +10,7 @@ const createRef = core.getInput('create-ref') === 'true';
 const fallbackToNoPrefixSearch = core.getInput('fallback-to-no-prefix-search') === 'true';
 const token = core.getInput('github-token');
 let tagPrefix = core.getInput('tag-prefix');
+const useUnixTimestamp = core.getInput('use-unix-timestamp') === 'true';
 
 async function createRefOnGitHub(versionToBuild) {
   core.info('Creating the ref on GitHub...');
