@@ -20368,16 +20368,20 @@ var require_version2 = __commonJS({
     function twoDigit(number) {
       return ('0' + number.toString()).slice(-2);
     }
-    function dateToPreReleaseComponent(input) {
-      let year = input.getFullYear() % 100;
-      let month = input.getMonth() + 1;
-      let day = input.getDate();
-      let hour = input.getHours();
-      let minute = input.getMinutes();
-      let second = input.getSeconds();
-      return `${twoDigit(year)}${twoDigit(month)}${twoDigit(day)}${twoDigit(hour)}${twoDigit(
-        minute
-      )}${twoDigit(second)}`;
+    function dateToPreReleaseComponent(input, useUnixTimestamp2) {
+      if (useUnixTimestamp2) {
+        return (input / 1e3) | 0;
+      } else {
+        const values = [
+          input.getFullYear() % 100,
+          input.getMonth() + 1,
+          input.getDate(),
+          input.getHours(),
+          input.getMinutes(),
+          input.getSeconds()
+        ];
+        return values.map(value => twoDigit(value)).join('');
+      }
     }
     function nextReleaseVersion2(defaultReleaseType2, tagPrefix2, fallbackToNoPrefixSearch2) {
       let baseCommit;
@@ -20410,7 +20414,8 @@ Prior release version: ${priorReleaseVersion}`);
       label,
       defaultReleaseType2,
       tagPrefix2,
-      fallbackToNoPrefixSearch2
+      fallbackToNoPrefixSearch2,
+      useUnixTimestamp2
     ) {
       let baseCommit;
       try {
@@ -20419,7 +20424,10 @@ Prior release version: ${priorReleaseVersion}`);
         core2.info(`An error occurred retrieving the tags for the repository: ${error}`);
       }
       let currentHeadCommit = git.commitMetadata('HEAD');
-      let formattedDate = dateToPreReleaseComponent(currentHeadCommit.committerDate);
+      let formattedDate = dateToPreReleaseComponent(
+        currentHeadCommit.committerDate,
+        useUnixTimestamp2
+      );
       let priorReleaseVersion;
       let releaseType;
       if (baseCommit === null) {
@@ -20460,6 +20468,7 @@ var createRef = core.getInput('create-ref') === 'true';
 var fallbackToNoPrefixSearch = core.getInput('fallback-to-no-prefix-search') === 'true';
 var token = core.getInput('github-token');
 var tagPrefix = core.getInput('tag-prefix');
+var useUnixTimestamp = core.getInput('use-unix-timestamp') === 'true';
 async function createRefOnGitHub(versionToBuild) {
   core.info('Creating the ref on GitHub...');
   if (!token || token.length === 0) {
@@ -20508,7 +20517,8 @@ async function run() {
         prereleaseLabel,
         defaultReleaseType,
         tagPrefix,
-        fallbackToNoPrefixSearch
+        fallbackToNoPrefixSearch,
+        useUnixTimestamp
       );
     } else {
       core.info(`Calculating a release version...`);

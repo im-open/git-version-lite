@@ -106,7 +106,7 @@ function twoDigit(number) {
  */
 function dateToPreReleaseComponent(input, useUnixTimestamp) {
   if (useUnixTimestamp) {
-    return input / 1E3 | 0;
+    return (input / 1e3) | 0;
   } else {
     const values = [
       input.getFullYear() % 100,
@@ -117,7 +117,7 @@ function dateToPreReleaseComponent(input, useUnixTimestamp) {
       input.getSeconds()
     ];
 
-    return (values.map(value => twoDigit(value)).join(''));
+    return values.map(value => twoDigit(value)).join('');
   }
 }
 
@@ -162,7 +162,13 @@ function nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSea
  * @param tagPrefix {string} The value to pre-pend to the calculated release
  * @returns {string} a SemVer pre-release version based on the Git history since the last tagged release
  */
-function nextPrereleaseVersion(label, defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch, useUnixTimestamp) {
+function nextPrereleaseVersion(
+  label,
+  defaultReleaseType,
+  tagPrefix,
+  fallbackToNoPrefixSearch,
+  useUnixTimestamp
+) {
   let baseCommit;
   try {
     // start from the most-recent release version
