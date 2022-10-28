@@ -69,7 +69,8 @@ async function run() {
         prereleaseLabel,
         defaultReleaseType,
         tagPrefix,
-        fallbackToNoPrefixSearch
+        fallbackToNoPrefixSearch,
+        useUnixTimestamp
       );
     } else {
       core.info(`Calculating a release version...`);

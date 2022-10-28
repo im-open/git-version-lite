@@ -29,6 +29,10 @@ inputs:
   github-token:
     description: Token with permissions to push a ref to the repository
     required: false
+  use-unix-timestamp:
+    description: 'Flag indicating whether to use a unix timestamp when formatting the commit date.  Accepts: true|false.'
+    required: false
+    default: 'false'
 
 outputs:
   NEXT_VERSION:

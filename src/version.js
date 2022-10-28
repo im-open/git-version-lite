@@ -101,18 +101,24 @@ function twoDigit(number) {
 /**
  *
  * @param {Date} input
+ * @param {boolean} useUnixTimestamp
  * @returns {string}
  */
-function dateToPreReleaseComponent(input) {
-  let year = input.getFullYear() % 100;
-  let month = input.getMonth() + 1;
-  let day = input.getDate();
-  let hour = input.getHours();
-  let minute = input.getMinutes();
-  let second = input.getSeconds();
-  return `${twoDigit(year)}${twoDigit(month)}${twoDigit(day)}${twoDigit(hour)}${twoDigit(
-    minute
-  )}${twoDigit(second)}`;
+function dateToPreReleaseComponent(input, useUnixTimestamp) {
+  if (useUnixTimestamp) {
+    return input / 1E3 | 0;
+  } else {
+    const values = [
+      input.getFullYear() % 100,
+      input.getMonth() + 1,
+      input.getDate(),
+      input.getHours(),
+      input.getMinutes(),
+      input.getSeconds()
+    ];
+
+    return (values.map(value => twoDigit(value)).join(''));
+  }
 }
 
 /**
@@ -156,7 +162,7 @@ function nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSea
  * @param tagPrefix {string} The value to pre-pend to the calculated release
  * @returns {string} a SemVer pre-release version based on the Git history since the last tagged release
  */
-function nextPrereleaseVersion(label, defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch) {
+function nextPrereleaseVersion(label, defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch, useUnixTimestamp) {
   let baseCommit;
   try {
     // start from the most-recent release version
@@ -166,7 +172,7 @@ function nextPrereleaseVersion(label, defaultReleaseType, tagPrefix, fallbackToN
   }
   let currentHeadCommit = git.commitMetadata('HEAD');
 
-  let formattedDate = dateToPreReleaseComponent(currentHeadCommit.committerDate);
+  let formattedDate = dateToPreReleaseComponent(currentHeadCommit.committerDate, useUnixTimestamp);
 
   let priorReleaseVersion;
   let releaseType;
