@@ -14,12 +14,13 @@ const branchName = core.getInput('branch-name', requiredArgOptions);
 const defaultReleaseType = core.getInput('default-release-type', requiredArgOptions).toLowerCase();
 const createRef = core.getBooleanInput('create-ref');
 const fallbackToNoPrefixSearch = core.getBooleanInput('fallback-to-no-prefix-search');
-const token = core.getInput('github-token', requiredArgOptions);
 let tagPrefix = core.getInput('tag-prefix');
 
 async function createRefOnGitHub(versionToBuild) {
   core.info('Creating the ref on GitHub...');
 
+  // This arg is only required when creating a ref, so get the input here.
+  const token = core.getInput('github-token', requiredArgOptions);
   const octokit = github.getOctokit(token);
 
   const git_sha =
