@@ -126,7 +126,7 @@ function nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSea
     // start from the most-recent release version
     baseCommit = getPriorReleaseCommit(tagPrefix, fallbackToNoPrefixSearch);
   } catch (error) {
-    core.info(`An error occurred retrieving the tags for the repository: ${error}`);
+    core.info(`An error occurred retrieving the tags for the repository: ${error.message}`);
   }
 
   let priorReleaseVersion;
@@ -162,7 +162,7 @@ function nextPrereleaseVersion(label, defaultReleaseType, tagPrefix, fallbackToN
     // start from the most-recent release version
     baseCommit = getPriorReleaseCommit(tagPrefix, fallbackToNoPrefixSearch);
   } catch (error) {
-    core.info(`An error occurred retrieving the tags for the repository: ${error}`);
+    core.info(`An error occurred retrieving the tags for the repository: ${error.message}`);
   }
   let currentHeadCommit = git.commitMetadata('HEAD');
 

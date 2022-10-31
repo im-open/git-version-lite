@@ -3,48 +3,51 @@ const github = require('@actions/github');
 
 const { nextReleaseVersion, nextPrereleaseVersion } = require('./version');
 
-const calculatePrereleaseVersion = core.getInput('calculate-prerelease-version') === 'true';
-const branchName = core.getInput('branch-name');
-const defaultReleaseType = core.getInput('default-release-type').toLowerCase();
-const createRef = core.getInput('create-ref') === 'true';
-const fallbackToNoPrefixSearch = core.getInput('fallback-to-no-prefix-search') === 'true';
-const token = core.getInput('github-token');
+// When used, this requiredArgOptions will cause the action to error if a value has not been provided.
+const requiredArgOptions = {
+  required: true,
+  trimWhitespace: true
+};
+
+const calculatePrereleaseVersion = core.getBooleanInput('calculate-prerelease-version');
+const branchName = core.getInput('branch-name', requiredArgOptions);
+const defaultReleaseType = core.getInput('default-release-type', requiredArgOptions).toLowerCase();
+const createRef = core.getBooleanInput('create-ref');
+const fallbackToNoPrefixSearch = core.getBooleanInput('fallback-to-no-prefix-search');
+const token = core.getInput('github-token', requiredArgOptions);
 let tagPrefix = core.getInput('tag-prefix');
 
 async function createRefOnGitHub(versionToBuild) {
   core.info('Creating the ref on GitHub...');
-  if (!token || token.length === 0) {
-    core.setFailed('The token is required when creating a ref');
-    return;
-  }
 
   const octokit = github.getOctokit(token);
 
-  let git_sha =
+  const git_sha =
     github.context.eventName === 'pull_request'
       ? github.context.payload.pull_request.head.sha
       : github.context.sha;
 
-  try {
-    await octokit.rest.git.createRef({
+  await octokit.rest.git
+    .createRef({
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       ref: `refs/tags/${versionToBuild}`,
       sha: git_sha
+    })
+    .then(() => {
+      core.info('Finished creating the ref on GitHub.');
+    })
+    .catch(error => {
+      core.setFailed(`An error occurred creating the ref on GitHub: ${error.message}`);
     });
-    core.info('Finished creating the ref on GitHub.');
-  } catch (error) {
-    core.setFailed(`An error occurred creating the ref on GitHub: ${error}`);
-  }
 }
+
 async function run() {
   try {
-    if (
-      defaultReleaseType !== 'major' &&
-      defaultReleaseType != 'minor' &&
-      defaultReleaseType != 'patch'
-    ) {
-      core.setFailed('The default release type must be populated and set to major|minor|patch');
+    const expectedReleaseTypes = ['major', 'minor', 'patch'];
+
+    if (!expectedReleaseTypes.includes(defaultReleaseType)) {
+      core.setFailed('The default release type must be set to major|minor|patch');
       return;
     }
 
@@ -55,11 +58,6 @@ async function run() {
 
     let versionToBuild;
     if (calculatePrereleaseVersion) {
-      if (!branchName || branchName.length === 0) {
-        core.setFailed('The branch name is required when calculating a pre-release version');
-        return;
-      }
-
       core.info(`Calculating a pre-release version for ${branchName}...`);
 
       //This regex will strip out anything that's not a-z, 0-9 or the - character
@@ -88,7 +86,9 @@ async function run() {
     core.exportVariable('NEXT_VERSION_NO_PREFIX', versionToBuildNoPrefix);
   } catch (error) {
     const versionTxt = calculatePrereleaseVersion ? 'pre-release' : 'release';
-    core.setFailed(`An error occurred calculating the next ${versionTxt} version: ${error}`);
+    core.setFailed(
+      `An error occurred calculating the next ${versionTxt} version: ${error.message}`
+    );
   }
 }
 run();
