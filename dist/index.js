@@ -19716,7 +19716,6 @@ var requiredArgOptions = {
   trimWhitespace: true
 };
 var calculatePrereleaseVersion = core.getBooleanInput('calculate-prerelease-version');
-var branchName = core.getInput('branch-name', requiredArgOptions);
 var defaultReleaseType = core.getInput('default-release-type', requiredArgOptions).toLowerCase();
 var createRef = core.getBooleanInput('create-ref');
 var fallbackToNoPrefixSearch = core.getBooleanInput('fallback-to-no-prefix-search');
@@ -19755,6 +19754,7 @@ async function run() {
     }
     let versionToBuild;
     if (calculatePrereleaseVersion) {
+      const branchName = core.getInput('branch-name', requiredArgOptions);
       core.info(`Calculating a pre-release version for ${branchName}...`);
       const prereleaseLabel = branchName.replace('refs/heads/', '').replace(/[^a-zA-Z0-9-]/g, '-');
       versionToBuild = nextPrereleaseVersion(

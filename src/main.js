@@ -10,7 +10,6 @@ const requiredArgOptions = {
 };
 
 const calculatePrereleaseVersion = core.getBooleanInput('calculate-prerelease-version');
-const branchName = core.getInput('branch-name', requiredArgOptions);
 const defaultReleaseType = core.getInput('default-release-type', requiredArgOptions).toLowerCase();
 const createRef = core.getBooleanInput('create-ref');
 const fallbackToNoPrefixSearch = core.getBooleanInput('fallback-to-no-prefix-search');
@@ -59,6 +58,7 @@ async function run() {
 
     let versionToBuild;
     if (calculatePrereleaseVersion) {
+      const branchName = core.getInput('branch-name', requiredArgOptions);
       core.info(`Calculating a pre-release version for ${branchName}...`);
 
       //This regex will strip out anything that's not a-z, 0-9 or the - character
