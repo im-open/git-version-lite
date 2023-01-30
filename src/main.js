@@ -12,6 +12,7 @@ const requiredArgOptions = {
 const calculatePrereleaseVersion = core.getBooleanInput('calculate-prerelease-version');
 const defaultReleaseType = core.getInput('default-release-type', requiredArgOptions).toLowerCase();
 const createRef = core.getBooleanInput('create-ref');
+const includeMajorRelease = core.getBooleanInput('include-major-release');
 const fallbackToNoPrefixSearch = core.getBooleanInput('fallback-to-no-prefix-search');
 let tagPrefix = core.getInput('tag-prefix');
 
@@ -76,6 +77,13 @@ async function run() {
 
     if (createRef) {
       await createRefOnGitHub(versionToBuild);
+    }
+    
+    if (createRef && includeMajorRelease && !calculatePrereleaseVersion) {
+      const majorVersion = versionToBuild.split('.')[0]
+      await createRefOnGitHub(majorVersion);
+      core.setOutput('MAJOR_VERSION', majmajorVersionor);
+      core.setOutput('MAJOR_VERSION_NO_PREFIX', majorVersion.substring(tagPrefix.length));
     }
 
     core.setOutput('NEXT_VERSION', versionToBuild);
