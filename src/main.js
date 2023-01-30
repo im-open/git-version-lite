@@ -16,33 +16,6 @@ const includeMajorRelease = core.getBooleanInput('include-major-release');
 const fallbackToNoPrefixSearch = core.getBooleanInput('fallback-to-no-prefix-search');
 let tagPrefix = core.getInput('tag-prefix');
 
-async function createRefOnGitHub(versionToBuild) {
-  core.info('Creating the ref on GitHub...');
-
-  // This arg is only required when creating a ref, so get the input here.
-  const token = core.getInput('github-token', requiredArgOptions);
-  const octokit = github.getOctokit(token);
-
-  const git_sha =
-    github.context.eventName === 'pull_request'
-      ? github.context.payload.pull_request.head.sha
-      : github.context.sha;
-
-  await octokit.rest.git
-    .createRef({
-      owner: github.context.repo.owner,
-      repo: github.context.repo.repo,
-      ref: `refs/tags/${versionToBuild}`,
-      sha: git_sha
-    })
-    .then(() => {
-      core.info('Finished creating the ref on GitHub.');
-    })
-    .catch(error => {
-      core.setFailed(`An error occurred creating the ref on GitHub: ${error.message}`);
-    });
-}
-
 async function run() {
   try {
     const expectedReleaseTypes = ['major', 'minor', 'patch'];
@@ -76,14 +49,17 @@ async function run() {
     }
 
     if (createRef) {
-      await createRefOnGitHub(versionToBuild);
-    }
+      const token = core.getInput('github-token', requiredArgOptions);
+      const octokit = github.getOctokit(token);
 
-    if (createRef && includeMajorRelease && !calculatePrereleaseVersion) {
-      const majorVersion = versionToBuild.split('.')[0];
-      await createRefOnGitHub(majorVersion);
-      core.setOutput('MAJOR_VERSION', majorVersion);
-      core.setOutput('MAJOR_VERSION_NO_PREFIX', majorVersion.substring(tagPrefix.length));
+      await createRefOnGitHub(octokit, versionToBuild);
+
+      if (includeMajorRelease && !calculatePrereleaseVersion) {
+        const majorVersion = versionToBuild.split('.')[0];
+        await createRefOnGitHub(octokit, majorVersion, false);
+        core.setOutput('MAJOR_VERSION', majorVersion);
+        core.setOutput('MAJOR_VERSION_NO_PREFIX', majorVersion.substring(tagPrefix.length));
+      }
     }
 
     core.setOutput('NEXT_VERSION', versionToBuild);
