@@ -78,11 +78,11 @@ async function run() {
     if (createRef) {
       await createRefOnGitHub(versionToBuild);
     }
-    
+
     if (createRef && includeMajorRelease && !calculatePrereleaseVersion) {
-      const majorVersion = versionToBuild.split('.')[0]
+      const majorVersion = versionToBuild.split('.')[0];
       await createRefOnGitHub(majorVersion);
-      core.setOutput('MAJOR_VERSION', majmajorVersionor);
+      core.setOutput('MAJOR_VERSION', majorVersion);
       core.setOutput('MAJOR_VERSION_NO_PREFIX', majorVersion.substring(tagPrefix.length));
     }
 

@@ -26,6 +26,10 @@ inputs:
     description: 'Flag indicating whether the action should create a ref (a release and tag) on the repository.  Accepted values: true|false'
     required: true
     default: 'false'
+  include-major-release:
+    description: 'Flag indicating whether the action should [create an adjacent release] (a release and tag) on the repository referencing only the major version.  Accepted values: true|false'
+    required: false
+    default: 'false'
   github-token:
     description: Token with permissions to push a ref to the repository
     required: false
