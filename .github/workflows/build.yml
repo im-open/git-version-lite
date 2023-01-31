@@ -40,7 +40,7 @@ jobs:
           files-with-code: 'action.yml,package.json,package-lock.json'
           folders-with-code: 'src,dist'
           token: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Get the next version for the readme if there are code changes to the action
         if: steps.action-code.outputs.HAS_CHANGES == 'true'
         id: version
