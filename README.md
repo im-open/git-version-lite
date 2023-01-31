@@ -68,12 +68,18 @@ The action has a `create-ref` flag and when set to true it uses the GitHub rest 
 | ------------------------------------ | ------------------------------------------------------------------------ |
 | `env`.`NEXT_VERSION`                 | The calculated version as an environment variable                        |
 | `env`.`NEXT_VERSION_NO_PREFIX`       | The calculated version as an environment variable without the tag prefix  |
-| `env`.`NEXT_MAJOR_VERSION`           | The calculated only major version as an environment variable             |
-| `env`.`NEXT_MAJOR_VERSION_NO_PREFIX` | The calculated only major version as an environment variable without the tag prefix |
+| `env`.`NEXT_MAJOR_VERSION`           | The calculated major version as an environment variable                  |
+| `env`.`NEXT_MAJOR_VERSION_NO_PREFIX` | The calculated major version as an environment variable without the tag prefix |
+| `env`.`NEXT_MAJOR_MINOR_VERSION`     | The calculated major and minor version as an environment variable        |
+| `env`.`NEXT_MAJOR_MINOR_VERSION_NO_PREFIX` | The calculated major and minor version as an environment variable without the tag prefix |
+| `env`.`NEXT_VERSION_SHA`             | The SHA of the next version as an environment variable                   |
 | `outputs`.`NEXT_VERSION`             | The calculated version as an output                                      |
 | `outputs`.`NEXT_VERSION_NO_PREFIX`   | The calculated version as an output without the tag prefix                |
-| `outputs`.`NEXT_MAJOR_VERSION`       | The calculated only major version as an output                           |
-| `outputs`.`NEXT_MAJOR_VERSION_NO_PREFIX` | The calculated only major version as an output without the tag prefix |
+| `outputs`.`NEXT_MAJOR_VERSION`       | The calculated major version as an output                                |
+| `outputs`.`NEXT_MAJOR_VERSION_NO_PREFIX` | The calculated major version as an output without the tag prefix      |
+| `outputs`.`NEXT_MAJOR_VERSION`       | The calculated major and minor version as an output                      |
+| `outputs`.`NEXT_MAJOR_VERSION_NO_PREFIX` | The calculated major and minor version as an output without the tag prefix |
+| `outputs`.`NEXT_VERSION`             | The SHA of the next version as an output                                 |
 
 ## Usage Examples
 
