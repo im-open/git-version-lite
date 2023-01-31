@@ -82,12 +82,12 @@ async function run() {
     const versionPartsNoPrefix = versionToBuild?.substring(tagPrefix.length).split('.') ?? [];
 
     const outputs = {
-      'NEXT_VERSION': versionToBuild,
-      'NEXT_VERSION_NO_PREFIX': versionPartsNoPrefix?.join('.'),
-      'NEXT_MAJOR_VERSION': versionParts[0],
-      'NEXT_MAJOR_VERSION_NO_PREFIX': versionPartsNoPrefix[0],
-      'NEXT_MAJOR_MINOR_VERSION': versionParts.slice(0, 2).join('.'),
-      'NEXT_MAJOR_MINOR_VERSION_NO_PREFIX': versionPartsNoPrefix.slice(0, 2).join('.')
+      NEXT_VERSION: versionToBuild,
+      NEXT_VERSION_NO_PREFIX: versionPartsNoPrefix?.join('.'),
+      NEXT_MAJOR_VERSION: versionParts[0],
+      NEXT_MAJOR_VERSION_NO_PREFIX: versionPartsNoPrefix[0],
+      NEXT_MAJOR_MINOR_VERSION: versionParts.slice(0, 2).join('.'),
+      NEXT_MAJOR_MINOR_VERSION_NO_PREFIX: versionPartsNoPrefix.slice(0, 2).join('.')
     };
 
     Object.entries(outputs)
@@ -95,9 +95,8 @@ async function run() {
       .forEach(pair => {
         core.setOutput(...pair);
         core.exportVariable(...pair);
-      })
-  }
-  catch (error) {
+      });
+  } catch (error) {
     const versionTxt = calculatePrereleaseVersion ? 'pre-release' : 'release';
     core.setFailed(
       `An error occurred calculating the next ${versionTxt} version: ${error.message}`
