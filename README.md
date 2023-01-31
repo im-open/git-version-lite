@@ -2,6 +2,7 @@
 
 This template can be used to calculate a release or pre-release version.  
 
+I'm making changes to the readme.
 ## Index
 
 - [Pre-requisites](#pre-requisites)
