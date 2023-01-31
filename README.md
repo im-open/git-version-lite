@@ -64,12 +64,16 @@ The action has a `create-ref` flag and when set to true it uses the GitHub rest 
 | `default-release-type`         | false                                                  | `major` | The default release type that should be used when no tags are detected.  Defaults to major.  Accepted values: `major\|minor\|patch`.                                                                                                                                                                       |
 
 ## Outputs
-| Output                             | Description                                                              |
-| ---------------------------------- | ------------------------------------------------------------------------ |
-| `env`.`NEXT_VERSION`               | The calculated version as an environment variable                        |
-| `env`.`NEXT_VERSION_NO_PREFIX`     | The calculated version as an environment variable without the tag prefix |
-| `outputs`.`NEXT_VERSION`           | The calculated version as an output                                      |
-| `outputs`.`NEXT_VERSION_NO_PREFIX` | The calculated version as an output without the tag prefix               |
+| Output                               | Description                                                              |
+| ------------------------------------ | ------------------------------------------------------------------------ |
+| `env`.`NEXT_VERSION`                 | The calculated version as an environment variable                        |
+| `env`.`NEXT_VERSION_NO_PREFIX`       | The calculated version as an environment variable without the tag prefix  |
+| `env`.`NEXT_MAJOR_VERSION`           | The calculated only major version as an environment variable             |
+| `env`.`NEXT_MAJOR_VERSION_NO_PREFIX` | The calculated only major version as an environment variable without the tag prefix |
+| `outputs`.`NEXT_VERSION`             | The calculated version as an output                                      |
+| `outputs`.`NEXT_VERSION_NO_PREFIX`   | The calculated version as an output without the tag prefix                |
+| `outputs`.`NEXT_MAJOR_VERSION`       | The calculated only major version as an output                           |
+| `outputs`.`NEXT_MAJOR_VERSION_NO_PREFIX` | The calculated only major version as an output without the tag prefix |
 
 ## Usage Examples
 
