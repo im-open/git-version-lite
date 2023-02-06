@@ -100,7 +100,7 @@ async function run() {
       .forEach(pair => {
         core.setOutput(...pair);
         core.exportVariable(...pair);
-        core.info(...pair);
+        console.debug(...pair);
       });
   } catch (error) {
     const versionTxt = calculatePrereleaseVersion ? 'pre-release' : 'release';
