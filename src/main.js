@@ -56,14 +56,14 @@ async function run() {
       tagPrefix = '';
     }
 
-    let versionToBuild;
+    let versionToBuild, priorReleaseVersion;
     if (calculatePrereleaseVersion) {
       const branchName = core.getInput('branch-name', requiredArgOptions);
       core.info(`Calculating a pre-release version for ${branchName}...`);
 
       //This regex will strip out anything that's not a-z, 0-9 or the - character
       const prereleaseLabel = branchName.replace('refs/heads/', '').replace(/[^a-zA-Z0-9-]/g, '-');
-      versionToBuild = nextPrereleaseVersion(
+      [versionToBuild, priorReleaseVersion] = nextPrereleaseVersion(
         prereleaseLabel,
         defaultReleaseType,
         tagPrefix,
@@ -71,11 +71,15 @@ async function run() {
       );
     } else {
       core.info(`Calculating a release version...`);
-      versionToBuild = nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch);
+      [versionToBuild, priorReleaseVersion] = nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch);
     }
 
     if (createRef) {
       await createRefOnGitHub(versionToBuild);
+    }
+
+    if (priorReleaseVersion) {
+      core.setOutput('PRIOR_VERSION', priorReleaseVersion);
     }
 
     core.setOutput('NEXT_VERSION', versionToBuild);

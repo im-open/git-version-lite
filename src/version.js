@@ -118,7 +118,9 @@ function dateToPreReleaseComponent(input) {
 /**
  * @param defaultReleaseType {string} The default release type to use if no tags are detected
  * @param tagPrefix {string} The value to pre-pend to the calculated release
- * @returns {string} a SemVer release version based on the Git history since the last tagged release
+ * @typedef {string} NextReleaseVersion
+ * @typedef {string} PriorReleaseVersion
+ * @returns {[NextReleaseVersion, PriorReleaseVersion]} a SemVer release version based on the Git history since the last tagged release
  */
 function nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch) {
   let baseCommit;
@@ -147,14 +149,16 @@ function nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSea
   core.info(`Tag Prefix: '${tagPrefix}'`);
   core.info(`Next Release Version: ${nextReleaseVersion}`);
 
-  return nextReleaseVersion;
+  return [nextReleaseVersion, priorReleaseVersion];
 }
 
 /**
  * @param label {string} The pre-release label
  * @param defaultReleaseType {string} The default release type to use if no tags are detected
  * @param tagPrefix {string} The value to pre-pend to the calculated release
- * @returns {string} a SemVer pre-release version based on the Git history since the last tagged release
+ * @typedef {string} PreReleaseVersion
+ * @typedef {string} PriorReleaseVersion
+ * @returns {[PreReleaseVersion, PriorReleaseVersion]} a SemVer pre-release version based on the Git history since the last tagged release
  */
 function nextPrereleaseVersion(label, defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch) {
   let baseCommit;
@@ -187,7 +191,7 @@ function nextPrereleaseVersion(label, defaultReleaseType, tagPrefix, fallbackToN
   core.info(`Cleaned Branch Name: '${label}'`);
   core.info(`Next Pre-release Version: ${prereleaseVersion}`);
 
-  return prereleaseVersion;
+  return [prereleaseVersion, priorReleaseVersion];
 }
 
 module.exports = {
