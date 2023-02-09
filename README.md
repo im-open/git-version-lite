@@ -18,29 +18,32 @@ This template can be used to calculate a release or pre-release version.
 - [License](#license)
 
 ## Pre-requisites
+
 This action relies on git history in order to determine the next version.  This means the `actions-checkout` step should be added before this action and a `fetch-depth: 0` needs to be set as an argument in order to fetch all history for branches and tags.  If `fetch-depth: 0` is not set, the action will have no tags to compare and returns `1.0.0` as the next version.
 
 ## Release vs Pre-release
+
 You can control whether the action will generate a release or pre-release next version with the `calculate-prerelease-version` flag.  The pre-release versions are intended for use with branches and a branch name is required to generate one.  
+
 - Release version format: `major.minor.patch` (`1.0.0`)
 - Pre-release version format: `major.minor.patch-<cleaned-branch-name>.<formated-date>` (`0.1.0-my-branch.210907164247`)
   - The action will clean the provided branch name.  It only accepts `a-z, A-Z, 0-9` and `-`, any other character will be replaced with `-`.
   - If the branch name includes `refs/heads/` that will be removed as well.
 
 ## Incrementing Strategy
+
 If a previous release (tag) is found, the action examines the commit messages to determine whether the next version should be a major, minor or patch increment.
 For pre-release versions the commits on the current branch are used, and for release versions the commits between the last tag and HEAD are used.
 
-
 The action will increment the major version if it identifies any of the following patterns in the commit body or notes:
 | Pattern                            | Examples                           |
-| ---------------------------------- | ---------------------------------- |
+|------------------------------------|------------------------------------|
 | `/\+semver:\s*(breaking\|major)/i` | +semver:breaking, +semver:major    |
 | `/BREAKING CHANGES?:?/`            | BREAKING CHANGE:, BREAKING CHANGES |
 
 The action will increment the minor version if it identifies any of the following patterns in the commit body or notes:
 | Pattern                           | Examples                                          |
-| --------------------------------- | ------------------------------------------------- |
+|-----------------------------------|---------------------------------------------------|
 | `/\+semver:\s*(feature\|minor)/i` | +semver:feature, +semver:minor                    |
 | `/feat\([^)]*\):\s/`              | feat(area): something, feat(): something          |
 | `/feature\([^)]*\):\s/`           | feature(area): something, feature(): something    |
@@ -50,11 +53,13 @@ The action will increment the minor version if it identifies any of the followin
 If none of the previous patterns match, the action will increment the patch version.
 
 ## Creating a Ref
+
 The action has a `create-ref` flag and when set to true it uses the GitHub rest API to [create a ref].  This API call results in a release and a tag being created.  This may be desirable in some workflows where you are incrementing on merge but may not work well for others like a CI build where you want to hold off pushing the ref until some steps have completed.
 
 ## Inputs
+
 | Parameter                      | Is Required                                            | Default | Description                                                                                                                                                                                                                                                                                                |
-| ------------------------------ | ------------------------------------------------------ | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|--------------------------------|--------------------------------------------------------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `tag-prefix`                   | false                                                  | `v`     | By default the action strips the prefixes off, but any value provided here will be prepended to the next calculated version.<br/><br/>GitHub indicates it is common practice to prefix your version names with the letter `v` (which is the default).  If you do not want a prefix use `tag-prefix: none`. |
 | `fallback-to-no-prefix-search` | false                                                  | `true`  | Flag indicating whether it should fallback to a prefix-less search if no tags are found with the current prefix.  Helpful when starting to use prefixes with tags.  Accepted values: true\|false.                                                                                                          |
 | `calculate-prerelease-version` | false                                                  | `false` | Flag indicating whether to calculate a pre-release version rather than a release version.  Accepts: `true\|false`.                                                                                                                                                                                         |
@@ -64,12 +69,18 @@ The action has a `create-ref` flag and when set to true it uses the GitHub rest 
 | `default-release-type`         | false                                                  | `major` | The default release type that should be used when no tags are detected.  Defaults to major.  Accepted values: `major\|minor\|patch`.                                                                                                                                                                       |
 
 ## Outputs
-| Output                             | Description                                                              |
-| ---------------------------------- | ------------------------------------------------------------------------ |
-| `env`.`NEXT_VERSION`               | The calculated version as an environment variable                        |
-| `env`.`NEXT_VERSION_NO_PREFIX`     | The calculated version as an environment variable without the tag prefix |
-| `outputs`.`NEXT_VERSION`           | The calculated version as an output                                      |
-| `outputs`.`NEXT_VERSION_NO_PREFIX` | The calculated version as an output without the tag prefix               |
+
+Each of the outputs are available as environment variables and as action outputs.
+
+| Output                         | Description                                                 |
+|--------------------------------|-------------------------------------------------------------|
+| `NEXT_VERSION`                 | The next `major.minor.patch` version                        |
+| `NEXT_VERSION_NO_PREFIX`       | The next `major.minor.patch` version without the tag prefix |
+| `NEXT_MINOR_VERSION`           | The next `major.minor` version                              |
+| `NEXT_MINOR_VERSION_NO_PREFIX` | The next `major.minor` version without the tag prefix       |
+| `NEXT_MAJOR_VERSION`           | The next `major` version                                    |
+| `NEXT_MAJOR_VERSION_NO_PREFIX` | The next `major` version without the tag prefix             |
+| `NEXT_VERSION_SHA`             | The SHA of the next version as an environment variable      |
 
 ## Usage Examples
 
@@ -90,7 +101,7 @@ jobs:
           fetch-depth: 0                        # Includes all history for all branches and tags
 
       - id: get-version
-        uses: im-open/git-version-lite@v2.1.3
+        uses: im-open/git-version-lite@v2.2.0
         with:
           calculate-prerelease-version: true
           branch-name: ${{ github.head_ref }}       # github.head_ref works when the trigger is pull_request
@@ -102,7 +113,7 @@ jobs:
       
       - run: |
           echo "The next version is ${{ env.NEXT_VERSION }}"
-          echo "The next version without the prefix is ${{ env.NEXT_VERSION_NO_PREFIX }}"
+          echo "The next version without the prefix is ${{ steps.get-version.outputs.NEXT_VERSION_NO_PREFIX }}"
 
 ```
 
@@ -144,7 +155,7 @@ Both the build and PR merge workflows will use the strategies below to determine
 
 This action uses [git-version-lite] (the prior released version of itself!) to examine commit messages to determine whether to perform a major, minor or patch increment on merge.  The following table provides the fragment that should be included in a commit message to active different increment strategies.
 | Increment Type | Commit Message Fragment                     |
-| -------------- | ------------------------------------------- |
+|----------------|---------------------------------------------|
 | major          | +semver:breaking                            |
 | major          | +semver:major                               |
 | minor          | +semver:feature                             |

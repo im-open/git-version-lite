@@ -15,24 +15,19 @@ const createRef = core.getBooleanInput('create-ref');
 const fallbackToNoPrefixSearch = core.getBooleanInput('fallback-to-no-prefix-search');
 let tagPrefix = core.getInput('tag-prefix');
 
-async function createRefOnGitHub(versionToBuild) {
+async function createRefOnGitHub(versionToBuild, sha) {
   core.info('Creating the ref on GitHub...');
 
   // This arg is only required when creating a ref, so get the input here.
   const token = core.getInput('github-token', requiredArgOptions);
   const octokit = github.getOctokit(token);
 
-  const git_sha =
-    github.context.eventName === 'pull_request'
-      ? github.context.payload.pull_request.head.sha
-      : github.context.sha;
-
   await octokit.rest.git
     .createRef({
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       ref: `refs/tags/${versionToBuild}`,
-      sha: git_sha
+      sha
     })
     .then(() => {
       core.info('Finished creating the ref on GitHub.');
@@ -74,21 +69,39 @@ async function run() {
       [versionToBuild, priorReleaseVersion] = nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch);
     }
 
+    // TODO: generate the sha from head https://github.com/im-open/git-version-lite/issues/24
+    const sha =
+      github.context.eventName === 'pull_request'
+        ? github.context.payload.pull_request.head.sha
+        : github.context.sha;
+
     if (createRef) {
-      await createRefOnGitHub(versionToBuild);
+      await createRefOnGitHub(versionToBuild, sha);
     }
 
-    if (priorReleaseVersion) {
-      core.setOutput('PRIOR_VERSION', priorReleaseVersion);
-    }
+    const versionParts = versionToBuild?.split('.') ?? [];
+    const versionPartsNoPrefix = versionToBuild?.substring(tagPrefix.length).split('.') ?? [];
 
-    core.setOutput('NEXT_VERSION', versionToBuild);
-    core.exportVariable('NEXT_VERSION', versionToBuild);
+    const outputs = {
+      NEXT_VERSION: versionToBuild,
+      NEXT_VERSION_NO_PREFIX: versionPartsNoPrefix?.join('.'),
 
-    let versionToBuildNoPrefix =
-      tagPrefix.length > 0 ? versionToBuild.substring(tagPrefix.length) : versionToBuild;
-    core.setOutput('NEXT_VERSION_NO_PREFIX', versionToBuildNoPrefix);
-    core.exportVariable('NEXT_VERSION_NO_PREFIX', versionToBuildNoPrefix);
+      NEXT_MINOR_VERSION: versionParts.slice(0, 2).join('.'),
+      NEXT_MINOR_VERSION_NO_PREFIX: versionPartsNoPrefix.slice(0, 2).join('.'),
+
+      NEXT_MAJOR_VERSION: versionParts[0],
+      NEXT_MAJOR_VERSION_NO_PREFIX: versionPartsNoPrefix[0],
+
+      NEXT_VERSION_SHA: sha
+    };
+
+    Object.entries(outputs)
+      .filter(([, value]) => value)
+      .forEach(pair => {
+        core.setOutput(...pair);
+        core.exportVariable(...pair);
+        core.info(...pair);
+      });
   } catch (error) {
     const versionTxt = calculatePrereleaseVersion ? 'pre-release' : 'release';
     core.setFailed(
