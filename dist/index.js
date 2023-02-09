@@ -19662,7 +19662,7 @@ Prior release version: ${priorReleaseVersion}`);
       let nextReleaseVersion3 = `${tagPrefix2}${semver.inc(priorReleaseVersion, releaseType)}`;
       core2.info(`Tag Prefix: '${tagPrefix2}'`);
       core2.info(`Next Release Version: ${nextReleaseVersion3}`);
-      return nextReleaseVersion3;
+      return [nextReleaseVersion3, priorReleaseVersion];
     }
     function nextPrereleaseVersion2(
       label,
@@ -19698,7 +19698,7 @@ Prior release version: ${priorReleaseVersion}`);
       core2.info(`Tag Prefix: '${tagPrefix2}'`);
       core2.info(`Cleaned Branch Name: '${label}'`);
       core2.info(`Next Pre-release Version: ${prereleaseVersion}`);
-      return prereleaseVersion;
+      return [prereleaseVersion, priorReleaseVersion];
     }
     module2.exports = {
       nextReleaseVersion: nextReleaseVersion2,
@@ -19748,12 +19748,12 @@ async function run() {
     if (tagPrefix.toLowerCase() == 'none') {
       tagPrefix = '';
     }
-    let versionToBuild;
+    let versionToBuild, priorReleaseVersion;
     if (calculatePrereleaseVersion) {
       const branchName = core.getInput('branch-name', requiredArgOptions);
       core.info(`Calculating a pre-release version for ${branchName}...`);
       const prereleaseLabel = branchName.replace('refs/heads/', '').replace(/[^a-zA-Z0-9-]/g, '-');
-      versionToBuild = nextPrereleaseVersion(
+      [versionToBuild, priorReleaseVersion] = nextPrereleaseVersion(
         prereleaseLabel,
         defaultReleaseType,
         tagPrefix,
@@ -19761,7 +19761,11 @@ async function run() {
       );
     } else {
       core.info(`Calculating a release version...`);
-      versionToBuild = nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch);
+      [versionToBuild, priorReleaseVersion] = nextReleaseVersion(
+        defaultReleaseType,
+        tagPrefix,
+        fallbackToNoPrefixSearch
+      );
     }
     const sha =
       github.context.eventName === 'pull_request'
@@ -19779,7 +19783,8 @@ async function run() {
       NEXT_MINOR_VERSION_NO_PREFIX: versionPartsNoPrefix.slice(0, 2).join('.'),
       NEXT_MAJOR_VERSION: versionParts[0],
       NEXT_MAJOR_VERSION_NO_PREFIX: versionPartsNoPrefix[0],
-      NEXT_VERSION_SHA: sha
+      NEXT_VERSION_SHA: sha,
+      PRIOR_VERSION: priorReleaseVersion
     };
     Object.entries(outputs)
       .filter(([, value]) => value)
