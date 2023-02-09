@@ -66,7 +66,11 @@ async function run() {
       );
     } else {
       core.info(`Calculating a release version...`);
-      [versionToBuild, priorReleaseVersion] = nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch);
+      [versionToBuild, priorReleaseVersion] = nextReleaseVersion(
+        defaultReleaseType,
+        tagPrefix,
+        fallbackToNoPrefixSearch
+      );
     }
 
     // TODO: generate the sha from head https://github.com/im-open/git-version-lite/issues/24
@@ -92,7 +96,8 @@ async function run() {
       NEXT_MAJOR_VERSION: versionParts[0],
       NEXT_MAJOR_VERSION_NO_PREFIX: versionPartsNoPrefix[0],
 
-      NEXT_VERSION_SHA: sha
+      NEXT_VERSION_SHA: sha,
+      PRIOR_VERSION: priorReleaseVersion
     };
 
     Object.entries(outputs)

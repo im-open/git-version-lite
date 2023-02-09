@@ -55,6 +55,7 @@ jobs:
 
       - name: Commit unstaged readme/recompile changes if there are code changes to the action
         if: steps.action-code.outputs.HAS_CHANGES == 'true'
+        id: commit-changes
         run: |
           if [[ "$(git status --porcelain)" != "" ]]; then
             echo "There are changes to commit"
@@ -66,3 +67,10 @@ jobs:
           else
             echo "There were no changes to commit"
           fi
+
+      - name: Upload dist folder as artifact on commit failure
+        if: failure() && steps.commit-changes.outcome == 'failure'
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: ./dist
