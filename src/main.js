@@ -9,6 +9,8 @@ const requiredArgOptions = {
   trimWhitespace: true
 };
 
+Example change.
+
 const calculatePrereleaseVersion = core.getBooleanInput('calculate-prerelease-version');
 const defaultReleaseType = core.getInput('default-release-type', requiredArgOptions).toLowerCase();
 const createRef = core.getBooleanInput('create-ref');
