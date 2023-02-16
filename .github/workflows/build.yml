@@ -51,7 +51,7 @@ jobs:
         with:
           file-to-update: './README.md'
           action-name:  ${{ github.repository }}
-          updated-version: ${{ steps.version.outputs.NEXT_VERSION }}
+          updated-version: ${{ steps.version.outputs.NEXT_MAJOR_VERSION }}
 
       - name: Commit unstaged readme/recompile changes if there are code changes to the action
         if: steps.action-code.outputs.HAS_CHANGES == 'true'
