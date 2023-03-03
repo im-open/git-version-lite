@@ -43,7 +43,7 @@ jobs:
       - name: Get the next version for the readme if there are code changes to the action
         if: steps.action-code.outputs.HAS_CHANGES == 'true'
         id: version
-        uses: im-open/git-version-lite@v2.1.2
+        uses: ./
 
       - name: Update readme with next version if there are code changes to the action
         if: steps.action-code.outputs.HAS_CHANGES == 'true'
@@ -51,7 +51,7 @@ jobs:
         with:
           file-to-update: './README.md'
           action-name:  ${{ github.repository }}
-          updated-version: ${{ steps.version.outputs.NEXT_VERSION }}
+          updated-version: ${{ steps.version.outputs.NEXT_MAJOR_VERSION }}
 
       - name: Commit unstaged readme/recompile changes if there are code changes to the action
         if: steps.action-code.outputs.HAS_CHANGES == 'true'
