@@ -45,6 +45,13 @@ jobs:
       - name: Increment the version
         uses: im-open/git-version-lite@main
         with:
-          create-ref: true
+          create-ref: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
           default-release-type: major
+          
+      - name: Create Release and Major Tags
+        run: |
+          git tag ${{ steps.version.outputs.NEXT_VERSION }} ${{ github.sha }}
+          git push origin ${{ steps.version.outputs.NEXT_VERSION }}
+          git tag ${{ steps.version.outputs.NEXT_MAJOR_VERSION }} ${{ github.sha }}
+          git push origin ${{ steps.version.outputs.NEXT_MAJOR_VERSION }} -f
