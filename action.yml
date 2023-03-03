@@ -1,6 +1,6 @@
 name: git-version-lite
 
-description: An action to calculate the next tag for the repository based on commit messages.
+description: 'An action to calculate the next tag for the repository based on commit messages.'
 
 inputs:
   calculate-prerelease-version:
