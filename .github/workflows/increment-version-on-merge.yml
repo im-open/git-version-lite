@@ -38,14 +38,13 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-          persist-credentials: false
 
       # See https://github.com/im-open/git-version-lite for more details around how to increment
       # major/minor/patch through commit messages
       - name: Increment the version
+        id: version
         uses: ./
         with:
-          create-ref: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
           default-release-type: major
           
@@ -55,5 +54,5 @@ jobs:
           git config user.email github-actions@github.com
           git tag ${{ steps.version.outputs.NEXT_VERSION }} ${{ github.sha }}
           git push origin ${{ steps.version.outputs.NEXT_VERSION }}
-          git tag ${{ steps.version.outputs.NEXT_MAJOR_VERSION }} ${{ github.sha }}
+          git tag -f ${{ steps.version.outputs.NEXT_MAJOR_VERSION }} ${{ github.sha }}
           git push origin ${{ steps.version.outputs.NEXT_MAJOR_VERSION }} -f
