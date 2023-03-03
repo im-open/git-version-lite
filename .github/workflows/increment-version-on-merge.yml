@@ -45,13 +45,12 @@ jobs:
       - name: Increment the version
         uses: ./
         with:
-          create-ref: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
           default-release-type: major
           
       - name: Create Version and Major Tags
         run: |
-          git config user.name github-actions
+          git config user.name github-actions[bot]
           git config user.email github-actions@github.com
           git tag ${{ steps.version.outputs.NEXT_VERSION }} ${{ github.sha }}
           git push origin ${{ steps.version.outputs.NEXT_VERSION }}
