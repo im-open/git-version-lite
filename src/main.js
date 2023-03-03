@@ -97,7 +97,7 @@ async function run() {
       NEXT_MAJOR_VERSION_NO_PREFIX: versionPartsNoPrefix[0],
 
       NEXT_VERSION_SHA: sha,
-      PRIOR_VERSION: priorReleaseVersion
+      PRIOR_RELEASE_VERSION: priorReleaseVersion
     };
 
     Object.entries(outputs)
