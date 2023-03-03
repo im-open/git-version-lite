@@ -49,7 +49,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           default-release-type: major
           
-      - name: Create Release and Major Tags
+      - name: Create Version and Major Tags
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
