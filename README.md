@@ -101,6 +101,7 @@ jobs:
           fetch-depth: 0                        # Includes all history for all branches and tags
 
       - id: get-version
+        # You may also reference just the major version.
         uses: im-open/git-version-lite@v2.2.1
         with:
           calculate-prerelease-version: true
