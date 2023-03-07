@@ -55,4 +55,5 @@ jobs:
           git tag ${{ steps.version.outputs.NEXT_VERSION }} ${{ github.sha }}
           git push origin ${{ steps.version.outputs.NEXT_VERSION }}
           git tag -f ${{ steps.version.outputs.NEXT_MAJOR_VERSION }} ${{ github.sha }}
+          git tag -f ${{ steps.version.outputs.NEXT_MINOR_VERSION }} ${{ github.sha }}
           git push origin ${{ steps.version.outputs.NEXT_MAJOR_VERSION }} -f
