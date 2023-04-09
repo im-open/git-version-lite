@@ -7,34 +7,35 @@ inputs:
     description: 'Flag indicating whether to calculate a pre-release version rather than a release version.  Accepts: true|false.'
     required: true
     default: 'false'
+
   branch-name:
     description: 'The name of the branch the tag is being generated for. Required when calculating the pre-release version.'
     required: false
+
   tag-prefix:
     description: 'By default the action strips the prefixes off, but any value provided here will be prepended to the next calculated version.'
     required: true
     default: 'v'
+
   fallback-to-no-prefix-search:
     description: 'Flag indicating whether it should fallback to a prefix-less search if no tags are found with the current prefix.  Helpful when starting to use prefixes with tags.  Accepted values: true|false.'
     required: true
     default: 'true'
+
   default-release-type:
     description: 'The default release type that should be used when no tags are detected.  Defaults to major.  Accepted values: major|minor|patch'
     required: true
     default: 'major'
+
+  # Deprecated input. Instead create a release with the im-open/create-release action
   create-ref:
     description: 'Flag indicating whether the action should create a ref (a release and tag) on the repository.  Accepted values: true|false'
     required: true
     default: 'false'
+    
   github-token:
     description: Token with permissions to push a ref to the repository
     required: false
-
-outputs:
-  NEXT_VERSION:
-    description: 'The calculated next version'
-  NEXT_VERSION_NO_PREFIX:
-    description: 'The calculated next version without the tag prefix.'
 
 runs:
   using: 'node16'

@@ -65,12 +65,9 @@ async function run() {
         tagPrefix,
         fallbackToNoPrefixSearch
       );
-
-      core.info(`Next Pre-release Version: ${prereleaseVersion}`);
     } else {
       core.info(`Calculating a release version...`);
       versionToBuild = nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch);
-      core.info(`Next Release Version: ${tagPrefix}${versionToBuild.nextVersion}`);
     }
 
     // TODO: generate the sha from head https://github.com/im-open/git-version-lite/issues/24
@@ -92,19 +89,19 @@ async function run() {
       PRIOR_VERSION: priorVersion.toString()
     });
 
-    const outputsVersionEntriesWithoutPrefix = outputVersionEntries
-      .map(([name, value]) => [`${name}_NO_PREFIX`, `${tagPrefix}${value}`]);
-
     [
-      ...outputVersionEntries,
-      ...outputsVersionEntriesWithoutPrefix,
       ['NEXT_VERSION_SHA', sha],
+
+      ...outputVersionEntries
+        .map(([name, value]) => [name, `${tagPrefix}${value}`]),
+
+      ...outputVersionEntries
+        .map(([name, value]) => [`${name}_NO_PREFIX`, value])
     ]
-      .filter(([, value]) => value)
-      .forEach(pair => {
-        core.setOutput(...pair);
-        core.exportVariable(...pair);
-        core.info(...pair);
+      .forEach(entry => {
+        core.setOutput(...entry);
+        core.exportVariable(...entry);
+        console.info(...entry);
       });
   } catch (error) {
     const versionTxt = calculatePrereleaseVersion ? 'pre-release' : 'release';
