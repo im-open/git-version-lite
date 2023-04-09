@@ -50,6 +50,7 @@ async function run() {
     if (tagPrefix.toLowerCase() == 'none') {
       tagPrefix = '';
     }
+    core.info(`Tag Prefix: '${tagPrefix}'`);
 
     let versionToBuild;
     if (calculatePrereleaseVersion) {
@@ -64,9 +65,12 @@ async function run() {
         tagPrefix,
         fallbackToNoPrefixSearch
       );
+
+      core.info(`Next Pre-release Version: ${prereleaseVersion}`);
     } else {
       core.info(`Calculating a release version...`);
       versionToBuild = nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch);
+      core.info(`Next Release Version: ${tagPrefix}${versionToBuild.nextVersion}`);
     }
 
     // TODO: generate the sha from head https://github.com/im-open/git-version-lite/issues/24
@@ -79,23 +83,23 @@ async function run() {
       await createRefOnGitHub(versionToBuild, sha);
     }
 
-    const versionParts = versionToBuild?.split('.') ?? [];
-    const versionPartsNoPrefix = versionToBuild?.substring(tagPrefix.length).split('.') ?? [];
+    const { nextVersion, priorVersion } = versionToBuild;
 
-    const outputs = {
-      NEXT_VERSION: versionToBuild,
-      NEXT_VERSION_NO_PREFIX: versionPartsNoPrefix?.join('.'),
+    const outputVersionEntries = Object.entries({
+      NEXT_VERSION: nextVersion.toString(),
+      NEXT_MINOR_VERSION: `${nextVersion.major}.${nextVersion.minor}`,
+      NEXT_MAJOR_VERSION: nextVersion.minor,
+      PRIOR_VERSION: priorVersion.toString()
+    });
 
-      NEXT_MINOR_VERSION: versionParts.slice(0, 2).join('.'),
-      NEXT_MINOR_VERSION_NO_PREFIX: versionPartsNoPrefix.slice(0, 2).join('.'),
+    const outputsVersionEntriesWithoutPrefix = outputVersionEntries
+      .map(([name, value]) => [`${name}_NO_PREFIX`, `${tagPrefix}${value}`]);
 
-      NEXT_MAJOR_VERSION: versionParts[0],
-      NEXT_MAJOR_VERSION_NO_PREFIX: versionPartsNoPrefix[0],
-
-      NEXT_VERSION_SHA: sha
-    };
-
-    Object.entries(outputs)
+    [
+      ...outputVersionEntries,
+      ...outputsVersionEntriesWithoutPrefix,
+      ['NEXT_VERSION_SHA', sha],
+    ]
       .filter(([, value]) => value)
       .forEach(pair => {
         core.setOutput(...pair);

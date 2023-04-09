@@ -81,6 +81,8 @@ Each of the outputs are available as environment variables and as action outputs
 | `NEXT_MAJOR_VERSION`           | The next `major` version                                    |
 | `NEXT_MAJOR_VERSION_NO_PREFIX` | The next `major` version without the tag prefix             |
 | `NEXT_VERSION_SHA`             | The SHA of the next version as an environment variable      |
+| `PRIOR_VERSION`                | The previous `major.minor.patch` version                   |
+| `PRIOR_VERSION_NO_PREFIX`      | The previous `major.minor.patch` version wihtout the tag prefix |
 
 ## Usage Examples
 
