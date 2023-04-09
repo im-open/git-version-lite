@@ -92,17 +92,14 @@ async function run() {
     [
       ['NEXT_VERSION_SHA', sha],
 
-      ...outputVersionEntries
-        .map(([name, value]) => [name, `${tagPrefix}${value}`]),
+      ...outputVersionEntries.map(([name, value]) => [name, `${tagPrefix}${value}`]),
 
-      ...outputVersionEntries
-        .map(([name, value]) => [`${name}_NO_PREFIX`, value])
-    ]
-      .forEach(entry => {
-        core.setOutput(...entry);
-        core.exportVariable(...entry);
-        console.info(...entry);
-      });
+      ...outputVersionEntries.map(([name, value]) => [`${name}_NO_PREFIX`, value])
+    ].forEach(entry => {
+      core.setOutput(...entry);
+      core.exportVariable(...entry);
+      console.info(...entry);
+    });
   } catch (error) {
     const versionTxt = calculatePrereleaseVersion ? 'pre-release' : 'release';
     core.setFailed(
