@@ -19777,7 +19777,7 @@ async function run() {
     const outputVersionEntries = Object.entries({
       NEXT_VERSION: nextVersion.toString(),
       NEXT_MINOR_VERSION: `${nextVersion.major}.${nextVersion.minor}`,
-      NEXT_MAJOR_VERSION: nextVersion.minor,
+      NEXT_MAJOR_VERSION: nextVersion.major,
       PRIOR_VERSION: priorVersion.toString()
     });
     [
