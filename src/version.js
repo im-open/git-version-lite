@@ -126,7 +126,7 @@ function dateToPreReleaseComponent(input) {
 /**
  * @param defaultReleaseType {string} The default release type to use if no tags are detected
  * @param tagPrefix {string} The value to pre-pend to the calculated release
- * @returns {ReleaseBucket} a SemVer based on the Git history since the last tagged release
+ * @returns {ReleaseBucket} a SemVer next and prior versions based on the Git history since the last tagged release
  */
 function nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch) {
   let baseCommit;
@@ -161,7 +161,7 @@ function nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSea
  * @param label {string} The pre-release label
  * @param defaultReleaseType {string} The default release type to use if no tags are detected
  * @param tagPrefix {string} The value to pre-pend to the calculated release
- * @returns {ReleaseBucket} a SemVer pre-release version based on the Git history since the last tagged release
+ * @returns {ReleaseBucket} a pre-release next and prior versions based on the Git history since the last tagged release
  */
 function nextPrereleaseVersion(label, defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch) {
   let baseCommit;
