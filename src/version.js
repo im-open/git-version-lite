@@ -1,6 +1,7 @@
 const git = require('./git-commands.js');
 const core = require('@actions/core');
 const semver = require('semver');
+const SemVer = require('semver/classes/semver');
 
 // These commit message patterns are a combination of GitVersion's commit message conventions and
 // Angular's which seem to be widely immitated including in semantic-release.
@@ -116,9 +117,16 @@ function dateToPreReleaseComponent(input) {
 }
 
 /**
+ * @typedef {{
+ *  priorVersion: SemVer,
+ *  nextVersion: SemVer
+ * }} ReleaseBucket
+ */
+
+/**
  * @param defaultReleaseType {string} The default release type to use if no tags are detected
  * @param tagPrefix {string} The value to pre-pend to the calculated release
- * @returns {string} a SemVer release version based on the Git history since the last tagged release
+ * @returns {ReleaseBucket} a SemVer next and prior versions based on the Git history since the last tagged release
  */
 function nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch) {
   let baseCommit;
@@ -143,18 +151,17 @@ function nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSea
     core.info(`Release Type: ${releaseType}`);
   }
 
-  let nextReleaseVersion = `${tagPrefix}${semver.inc(priorReleaseVersion, releaseType)}`;
-  core.info(`Tag Prefix: '${tagPrefix}'`);
-  core.info(`Next Release Version: ${nextReleaseVersion}`);
-
-  return nextReleaseVersion;
+  return {
+    priorVersion: new SemVer(priorReleaseVersion),
+    nextVersion: new SemVer(semver.inc(priorReleaseVersion, releaseType))
+  };
 }
 
 /**
  * @param label {string} The pre-release label
  * @param defaultReleaseType {string} The default release type to use if no tags are detected
  * @param tagPrefix {string} The value to pre-pend to the calculated release
- * @returns {string} a SemVer pre-release version based on the Git history since the last tagged release
+ * @returns {ReleaseBucket} a pre-release next and prior versions based on the Git history since the last tagged release
  */
 function nextPrereleaseVersion(label, defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch) {
   let baseCommit;
@@ -182,12 +189,13 @@ function nextPrereleaseVersion(label, defaultReleaseType, tagPrefix, fallbackToN
     core.info(`Release Type: ${releaseType}`);
   }
   let nextReleaseVersion = semver.inc(priorReleaseVersion, releaseType);
-  let prereleaseVersion = `${tagPrefix}${nextReleaseVersion}-${label}.${formattedDate}`;
-  core.info(`Tag Prefix: '${tagPrefix}'`);
+  let prereleaseVersion = `${nextReleaseVersion}-${label}.${formattedDate}`;
   core.info(`Cleaned Branch Name: '${label}'`);
-  core.info(`Next Pre-release Version: ${prereleaseVersion}`);
 
-  return prereleaseVersion;
+  return {
+    priorVersion: new SemVer(priorReleaseVersion),
+    nextVersion: new SemVer(prereleaseVersion)
+  };
 }
 
 module.exports = {

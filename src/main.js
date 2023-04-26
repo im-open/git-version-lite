@@ -50,6 +50,7 @@ async function run() {
     if (tagPrefix.toLowerCase() == 'none') {
       tagPrefix = '';
     }
+    core.info(`Tag Prefix: '${tagPrefix}'`);
 
     let versionToBuild;
     if (calculatePrereleaseVersion) {
@@ -79,29 +80,26 @@ async function run() {
       await createRefOnGitHub(versionToBuild, sha);
     }
 
-    const versionParts = versionToBuild?.split('.') ?? [];
-    const versionPartsNoPrefix = versionToBuild?.substring(tagPrefix.length).split('.') ?? [];
+    const { nextVersion, priorVersion } = versionToBuild;
 
-    const outputs = {
-      NEXT_VERSION: versionToBuild,
-      NEXT_VERSION_NO_PREFIX: versionPartsNoPrefix?.join('.'),
+    const outputVersionEntries = Object.entries({
+      NEXT_VERSION: nextVersion.toString(),
+      NEXT_MINOR_VERSION: `${nextVersion.major}.${nextVersion.minor}`,
+      NEXT_MAJOR_VERSION: nextVersion.major,
+      PRIOR_VERSION: priorVersion.toString()
+    });
 
-      NEXT_MINOR_VERSION: versionParts.slice(0, 2).join('.'),
-      NEXT_MINOR_VERSION_NO_PREFIX: versionPartsNoPrefix.slice(0, 2).join('.'),
+    [
+      ['NEXT_VERSION_SHA', sha],
 
-      NEXT_MAJOR_VERSION: versionParts[0],
-      NEXT_MAJOR_VERSION_NO_PREFIX: versionPartsNoPrefix[0],
+      ...outputVersionEntries.map(([name, value]) => [name, `${tagPrefix}${value}`]),
 
-      NEXT_VERSION_SHA: sha
-    };
-
-    Object.entries(outputs)
-      .filter(([, value]) => value)
-      .forEach(pair => {
-        core.setOutput(...pair);
-        core.exportVariable(...pair);
-        core.info(...pair);
-      });
+      ...outputVersionEntries.map(([name, value]) => [`${name}_NO_PREFIX`, value])
+    ].forEach(entry => {
+      core.setOutput(...entry);
+      core.exportVariable(...entry);
+      console.info(...entry);
+    });
   } catch (error) {
     const versionTxt = calculatePrereleaseVersion ? 'pre-release' : 'release';
     core.setFailed(

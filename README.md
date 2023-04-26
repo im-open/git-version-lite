@@ -81,6 +81,8 @@ Each of the outputs are available as environment variables and as action outputs
 | `NEXT_MAJOR_VERSION`           | The next `major` version                                    |
 | `NEXT_MAJOR_VERSION_NO_PREFIX` | The next `major` version without the tag prefix             |
 | `NEXT_VERSION_SHA`             | The SHA of the next version as an environment variable      |
+| `PRIOR_VERSION`                | The previous `major.minor.patch` version                   |
+| `PRIOR_VERSION_NO_PREFIX`      | The previous `major.minor.patch` version without the tag prefix |
 
 ## Usage Examples
 
@@ -102,7 +104,7 @@ jobs:
 
       - id: get-version
         # You may also reference just the major version.
-        uses: im-open/git-version-lite@v2.2.1
+        uses: im-open/git-version-lite@v2.3.0
         with:
           calculate-prerelease-version: true
           branch-name: ${{ github.head_ref }}       # github.head_ref works when the trigger is pull_request

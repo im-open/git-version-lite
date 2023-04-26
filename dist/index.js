@@ -19549,6 +19549,7 @@ var require_version2 = __commonJS({
     var git = require_git_commands();
     var core2 = require_core();
     var semver = require_semver2();
+    var SemVer = require_semver();
     var commitPatterns = {
       major: [/\+semver:\s*(breaking|major)/i, /BREAKING CHANGES?:?/],
       minor: [
@@ -19659,10 +19660,10 @@ Prior release version default: ${priorReleaseVersion}`);
 Prior release version: ${priorReleaseVersion}`);
         core2.info(`Release Type: ${releaseType}`);
       }
-      let nextReleaseVersion3 = `${tagPrefix2}${semver.inc(priorReleaseVersion, releaseType)}`;
-      core2.info(`Tag Prefix: '${tagPrefix2}'`);
-      core2.info(`Next Release Version: ${nextReleaseVersion3}`);
-      return nextReleaseVersion3;
+      return {
+        priorVersion: new SemVer(priorReleaseVersion),
+        nextVersion: new SemVer(semver.inc(priorReleaseVersion, releaseType))
+      };
     }
     function nextPrereleaseVersion2(
       label,
@@ -19694,11 +19695,12 @@ Prior release version: ${priorReleaseVersion}`);
         core2.info(`Release Type: ${releaseType}`);
       }
       let nextReleaseVersion3 = semver.inc(priorReleaseVersion, releaseType);
-      let prereleaseVersion = `${tagPrefix2}${nextReleaseVersion3}-${label}.${formattedDate}`;
-      core2.info(`Tag Prefix: '${tagPrefix2}'`);
+      let prereleaseVersion = `${nextReleaseVersion3}-${label}.${formattedDate}`;
       core2.info(`Cleaned Branch Name: '${label}'`);
-      core2.info(`Next Pre-release Version: ${prereleaseVersion}`);
-      return prereleaseVersion;
+      return {
+        priorVersion: new SemVer(priorReleaseVersion),
+        nextVersion: new SemVer(prereleaseVersion)
+      };
     }
     module2.exports = {
       nextReleaseVersion: nextReleaseVersion2,
@@ -19748,6 +19750,7 @@ async function run() {
     if (tagPrefix.toLowerCase() == 'none') {
       tagPrefix = '';
     }
+    core.info(`Tag Prefix: '${tagPrefix}'`);
     let versionToBuild;
     if (calculatePrereleaseVersion) {
       const branchName = core.getInput('branch-name', requiredArgOptions);
@@ -19770,24 +19773,22 @@ async function run() {
     if (createRef) {
       await createRefOnGitHub(versionToBuild, sha);
     }
-    const versionParts = versionToBuild?.split('.') ?? [];
-    const versionPartsNoPrefix = versionToBuild?.substring(tagPrefix.length).split('.') ?? [];
-    const outputs = {
-      NEXT_VERSION: versionToBuild,
-      NEXT_VERSION_NO_PREFIX: versionPartsNoPrefix?.join('.'),
-      NEXT_MINOR_VERSION: versionParts.slice(0, 2).join('.'),
-      NEXT_MINOR_VERSION_NO_PREFIX: versionPartsNoPrefix.slice(0, 2).join('.'),
-      NEXT_MAJOR_VERSION: versionParts[0],
-      NEXT_MAJOR_VERSION_NO_PREFIX: versionPartsNoPrefix[0],
-      NEXT_VERSION_SHA: sha
-    };
-    Object.entries(outputs)
-      .filter(([, value]) => value)
-      .forEach(pair => {
-        core.setOutput(...pair);
-        core.exportVariable(...pair);
-        core.info(...pair);
-      });
+    const { nextVersion, priorVersion } = versionToBuild;
+    const outputVersionEntries = Object.entries({
+      NEXT_VERSION: nextVersion.toString(),
+      NEXT_MINOR_VERSION: `${nextVersion.major}.${nextVersion.minor}`,
+      NEXT_MAJOR_VERSION: nextVersion.major,
+      PRIOR_VERSION: priorVersion.toString()
+    });
+    [
+      ['NEXT_VERSION_SHA', sha],
+      ...outputVersionEntries.map(([name, value]) => [name, `${tagPrefix}${value}`]),
+      ...outputVersionEntries.map(([name, value]) => [`${name}_NO_PREFIX`, value])
+    ].forEach(entry => {
+      core.setOutput(...entry);
+      core.exportVariable(...entry);
+      console.info(...entry);
+    });
   } catch (error) {
     const versionTxt = calculatePrereleaseVersion ? 'pre-release' : 'release';
     core.setFailed(
