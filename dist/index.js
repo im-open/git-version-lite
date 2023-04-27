@@ -19772,7 +19772,7 @@ async function run() {
         : github.context.sha;
     const { nextVersion, priorVersion } = versionToBuild;
     if (createRef) {
-      await createRefOnGitHub(nextVersion.toString(), sha);
+      await createRefOnGitHub(`${tagPrefix}${nextVersion.toString()}`, sha);
     }
     const outputVersionEntries = Object.entries({
       NEXT_VERSION: nextVersion.toString(),
