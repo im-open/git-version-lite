@@ -76,11 +76,11 @@ async function run() {
         ? github.context.payload.pull_request.head.sha
         : github.context.sha;
 
-    if (createRef) {
-      await createRefOnGitHub(versionToBuild, sha);
-    }
-
     const { nextVersion, priorVersion } = versionToBuild;
+
+    if (createRef) {
+      await createRefOnGitHub(`${tagPrefix}${nextVersion.toString()}`, sha);
+    }
 
     const outputVersionEntries = Object.entries({
       NEXT_VERSION: nextVersion.toString(),
@@ -91,9 +91,7 @@ async function run() {
 
     [
       ['NEXT_VERSION_SHA', sha],
-
       ...outputVersionEntries.map(([name, value]) => [name, `${tagPrefix}${value}`]),
-
       ...outputVersionEntries.map(([name, value]) => [`${name}_NO_PREFIX`, value])
     ].forEach(entry => {
       core.setOutput(...entry);
