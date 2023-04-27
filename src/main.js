@@ -75,7 +75,7 @@ async function run() {
       github.context.eventName === 'pull_request'
         ? github.context.payload.pull_request.head.sha
         : github.context.sha;
-        
+
     const { nextVersion, priorVersion } = versionToBuild;
 
     if (createRef) {

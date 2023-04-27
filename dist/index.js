@@ -19770,10 +19770,10 @@ async function run() {
       github.context.eventName === 'pull_request'
         ? github.context.payload.pull_request.head.sha
         : github.context.sha;
-    if (createRef) {
-      await createRefOnGitHub(versionToBuild, sha);
-    }
     const { nextVersion, priorVersion } = versionToBuild;
+    if (createRef) {
+      await createRefOnGitHub(nextVersion.toString(), sha);
+    }
     const outputVersionEntries = Object.entries({
       NEXT_VERSION: nextVersion.toString(),
       NEXT_MINOR_VERSION: `${nextVersion.major}.${nextVersion.minor}`,
