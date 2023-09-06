@@ -29,7 +29,6 @@ on:
   #   if this action should be incremented and if new tags should be pushed to the repo based
   #   on the same criteria used in the build-and-review-pr.yml workflow.
 
-
 jobs:
   increment-version:
     runs-on: ubuntu-latest
@@ -58,6 +57,10 @@ jobs:
             }
             console.log(`PR is merged to ${defaultBranch}.  Proceed with subsequent steps.`);
             core.exportVariable('MERGE_TO_MAIN', true);
+
+      - name: Checkout
+        if: env.MERGE_TO_MAIN == 'true'
+        uses: actions/checkout@v3
 
       - name: If PR is merged to main - Check for code changes to the action source code
         if: env.MERGE_TO_MAIN == 'true'
@@ -88,7 +91,7 @@ jobs:
         if: env.MERGE_TO_MAIN == 'true' && steps.source-code.outputs.HAS_CHANGES == 'true'
         id: version
         uses: ./
-        
+
       - name: If PR is merged to main & PR has source code changes - Print action version (${{ steps.version.outputs.NEXT_VERSION || 'N/A'}})
         if: env.MERGE_TO_MAIN == 'true' && steps.source-code.outputs.HAS_CHANGES == 'true'
         run: echo "The next action version will be - ${{ steps.version.outputs.NEXT_VERSION }}"
