@@ -1,0 +1,203 @@
+name: Build and Review PR
+run-name: 'Build and Review PR #${{ github.event.pull_request.number }}'
+
+on:
+  # https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
+  #
+  # This workflow uses the pull_request trigger which prevents write permissions on the
+  # GH_TOKEN and secrets access from public forks.  This should remain as a pull_request
+  # trigger to minimize the access public forks have in the repository.  The reduced
+  # permissions are adequate but do mean that re-compiles and readme changes will have to be
+  # made manually by the PR author.  These auto-updates could be done by this workflow
+  # for branches but in order to re-trigger a PR build (which is needed for status checks),
+  # we would make the commits with a different user and their PAT.  To minimize exposure
+  # and complication we will request those changes be manually made by the PR author.
+  pull_request:
+    types: [opened, synchronize, reopened]
+  # paths:
+  #   Do not include specific paths here.  We always want this build to run and produce a
+  #   status check which are branch protection rules can use.  If this is skipped because of
+  #   path filtering, a status check will not be created and we won't be able to merge the PR
+  #   without disabling that requirement.  If we have a status check that is always produced,
+  #   we can also use that to require all branches be up to date before they are merged.
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      HAS_SOURCE_CODE_CHANGES: ${{ steps.source-code.outputs.HAS_CHANGES }}
+      NEXT_VERSION: ${{ steps.version.outputs.NEXT_VERSION }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Check for code changes to the action source code
+        id: source-code
+        uses: im-open/did-custom-action-code-change@v1
+        with:
+          files-with-code: 'action.yml,package.json,package-lock.json'
+          folders-with-code: 'src,dist'
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Action Source Code Changed - ${{ steps.source-code.outputs.HAS_CHANGES }} (open for details)
+        run: |
+          if [ "${{ steps.source-code.outputs.HAS_CHANGES }}" == "true" ]; then
+            echo "This PR changes the action's source code.  Proceed with subsequent steps."
+          else
+            echo "This PR does not change the action's source code.  Skipping subsequent steps."
+          fi
+
+      - name: Get the next version for the repo
+        if: steps.source-code.outputs.HAS_CHANGES == 'true'
+        id: version
+        uses: ./
+
+      - name: The next action version will be - ${{ steps.version.outputs.NEXT_VERSION || 'N/A'}}
+        if: steps.source-code.outputs.HAS_CHANGES == 'true'
+        run: echo "The next action version will be - ${{ steps.version.outputs.NEXT_VERSION }}"
+
+  build-and-review-pr:
+    runs-on: ubuntu-latest
+    needs: [setup]
+
+    env:
+      NEXT_VERSION: ${{ needs.setup.outputs.NEXT_VERSION || 'N/A' }}
+      HAS_CODE_CHANGES: ${{ needs.setup.outputs.HAS_SOURCE_CODE_CHANGES }}
+      IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
+      PR_SOURCE: ${{ github.event.pull_request.head.repo.fork == true && 'fork' || 'branch' }}
+      README: README.md
+      HAS_BUILD_STEP: 'true'
+      NEEDS_BUILD_COMMIT: false
+      NEEDS_README_COMMIT: false
+
+    steps:
+      - name: Action Source Code Changed (open for details)
+        run: |
+          if [ "${{env.HAS_CODE_CHANGES}}" == "true" ]; then
+            echo "This PR changes the action's source code.  Proceed with subsequent steps and jobs."
+          else
+            echo "This PR does not change the action's source code.  Skipping subsequent steps and jobs."
+          fi
+
+      # ----------------------------------------------------------------------------------------------------
+      #
+      # The remaining steps in this build will use the env.HAS_CODE_CHANGES condition.  Setting it on each
+      # step rather than the job will ensure this job always runs and that we can use it for status checks.
+      #
+      # ----------------------------------------------------------------------------------------------------
+
+      - name: PR Source - ${{ env.PR_SOURCE }}
+        if: env.HAS_CODE_CHANGES == 'true'
+        run: echo "PRs can come from a branch or a fork.  This PR is from a ${{ env.PR_SOURCE }}."
+
+      - name: Checkout
+        if: env.HAS_CODE_CHANGES == 'true'
+        uses: actions/checkout@v3
+
+      # -----------------------------------
+      # Check if action has been recompiled
+      # -----------------------------------
+      - name: If action has build step - Setup Node 16.x
+        uses: actions/setup-node@v3
+        if: env.HAS_CODE_CHANGES == 'true' && env.HAS_BUILD_STEP == 'true'
+        with:
+          node-version: 16.x
+
+      - name: If action has build step - Build the action
+        if: env.HAS_CODE_CHANGES == 'true' && env.HAS_BUILD_STEP == 'true'
+        run: 'npm run build'
+
+      - name: If action has build step - Check for unstaged build changes (open for details)
+        if: env.HAS_CODE_CHANGES == 'true' && env.HAS_BUILD_STEP == 'true'
+        run: |
+          if [[ "$(git status --porcelain)" != "" ]]; then
+            echo "There action needs to be re-built."
+            echo "NEEDS_BUILD_COMMIT=true" >> "$GITHUB_ENV"
+          else
+            echo "The action has already been re-built"
+          fi
+
+      # -------------------------------------
+      # Check if README needs version updates
+      # -------------------------------------
+      - name: ${{ env.README }} - Update version to @${{ env.NEXT_VERSION }}
+        if: env.HAS_CODE_CHANGES == 'true'
+        id: update-readme
+        uses: im-open/update-action-version-in-file@v1
+        with:
+          file-to-update: ./${{ env.README }} # Default: 'README.md'
+          action-name: ${{ github.repository }}
+          updated-version: ${{ env.NEXT_VERSION }}
+
+      - name: ${{ env.README }} - Check for unstaged version changes (open for details)
+        if: env.HAS_CODE_CHANGES == 'true'
+        run: |
+          if [ "${{ steps.update-readme.outputs.has-changes }}" == "true" ]; then
+            echo "README.md needs version updates."
+            echo "NEEDS_README_COMMIT=true" >> "$GITHUB_ENV"
+          else
+            echo "README.md does not need version updates."
+          fi
+
+      # -------------------------------------------
+      # Fail the workflow if any updates are needed
+      # -------------------------------------------
+      - name: Fail the workflow if there are any outstanding changes
+        if: env.HAS_CODE_CHANGES == 'true' &&  (env.NEEDS_BUILD_COMMIT == 'true' || env.NEEDS_README_COMMIT == 'true')
+        id: summary
+        uses: actions/github-script@v6
+        with:
+          script: |
+
+            // Setup vars for the script to use
+            const hasBuildStep =  ${{ env.HAS_BUILD_STEP }};
+            const needsBuildChanges = hasBuildStep && ${{ env.NEEDS_BUILD_COMMIT }};
+            const needsReadmeChanges = ${{ env.NEEDS_README_COMMIT }};
+
+            const contribId = '#contributing';
+            const contributionLink = `https://github.com/${{ github.repository }}${contribId}`;
+            const contributingTitle = contribId.replace('#', '').split('-').map(w => { return w.slice(0, 1).toUpperCase() + w.slice(1) }).join(' ');
+
+            const exampleId = '#usage-examples';
+            const readmeLink = `${{ github.event.pull_request.head.repo.html_url }}/blob/${{ github.event.pull_request.head.ref }}/${{ env.README }}`;
+            const readmeExampleLink = `${readmeLink}${exampleId}`;
+            const readmeExampleTitle = exampleId.replace('#', '').split('-').map(w => { return w.slice(0, 1).toUpperCase() + w.slice(1) }).join(' ');
+
+            // Construct the instructions for fixing the PR
+            let instructions = `Before this PR can be merged, the following item(s) should be addressed to comply with the action's ${contributingTitle} Guidelines.`
+            if (needsReadmeChanges) {
+              instructions += `
+            - Please update the action's version in the ${readmeExampleTitle} section of ${{ env.README }}.  Each instance of this action should be updated to: 
+              \`uses: ${{ github.repository }}@${{ env.NEXT_VERSION }}\``;
+            }
+            if (needsBuildChanges){
+              instructions += `
+            - Please ensure the action has been recompiled by running the following command from the root of the repository: 
+              \`npm run build\``;
+            }
+
+            // Update the instructions with links
+            let instructionsWithLinks = instructions
+              .replace('of ${{ env.README }}.', `of [${{ env.README }}](${readmeLink}).`)
+              .replace(`${contributingTitle} Guidelines`, `[${contributingTitle} Guidelines](${contributionLink})`)
+              .replace(readmeExampleTitle, `[${readmeExampleTitle}](${readmeExampleLink})`);
+                        
+            // Comment on PR for branches.  A fork's GH_TOKEN only has 'read' permission on all scopes so a comment cannot be made.
+            if (!${{ env.IS_FORK }}) {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: instructionsWithLinks
+              })
+            }
+
+            // Add workflow summary & fail the build
+            core.summary
+              .addRaw(instructionsWithLinks)
+              .write();
+            core.setFailed(instructions);
