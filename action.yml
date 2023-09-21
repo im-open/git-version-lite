@@ -26,16 +26,6 @@ inputs:
     description: 'The default release type that should be used when no tags are detected.  Defaults to major.  Accepted values: major|minor|patch'
     required: true
     default: 'major'
-
-  # Deprecated input. Instead create a release with the im-open/create-release action
-  create-ref:
-    description: 'Flag indicating whether the action should create a ref (a release and tag) on the repository.  Accepted values: true|false'
-    required: true
-    default: 'false'
-    
-  github-token:
-    description: Token with permissions to push a ref to the repository
-    required: false
     
 outputs:
   NEXT_VERSION:
@@ -55,9 +45,6 @@ outputs:
     
   NEXT_MAJOR_VERSION_NO_PREFIX:
     description: 'The next major version without the tag prefix.'
-    
-  NEXT_VERSION_SHA:
-    description: 'The SHA of the next version as an environment variable.'
     
   PRIOR_VERSION:
     description: 'The previous major.minor.patch version.'

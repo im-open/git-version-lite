@@ -1,5 +1,4 @@
 const core = require('@actions/core');
-const github = require('@actions/github');
 
 const { nextReleaseVersion, nextPrereleaseVersion } = require('./version');
 
@@ -11,30 +10,11 @@ const requiredArgOptions = {
 
 const calculatePrereleaseVersion = core.getBooleanInput('calculate-prerelease-version');
 const defaultReleaseType = core.getInput('default-release-type', requiredArgOptions).toLowerCase();
-const createRef = core.getBooleanInput('create-ref');
 const fallbackToNoPrefixSearch = core.getBooleanInput('fallback-to-no-prefix-search');
 let tagPrefix = core.getInput('tag-prefix');
 
-async function createRefOnGitHub(versionToBuild, sha) {
-  core.info('Creating the ref on GitHub...');
-
-  // This arg is only required when creating a ref, so get the input here.
-  const token = core.getInput('github-token', requiredArgOptions);
-  const octokit = github.getOctokit(token);
-
-  await octokit.rest.git
-    .createRef({
-      owner: github.context.repo.owner,
-      repo: github.context.repo.repo,
-      ref: `refs/tags/${versionToBuild}`,
-      sha
-    })
-    .then(() => {
-      core.info('Finished creating the ref on GitHub.');
-    })
-    .catch(error => {
-      core.setFailed(`An error occurred creating the ref on GitHub: ${error.message}`);
-    });
+if (tagPrefix.toLowerCase() == 'none') {
+  tagPrefix = ''; //action.yml sets it to v by default so the user wouldn't be able to set an empty string themselves.
 }
 
 async function run() {
@@ -46,15 +26,9 @@ async function run() {
       return;
     }
 
-    //action.yml sets it to v by default so the user wouldn't be able to set an empty string themselves.
-    if (tagPrefix.toLowerCase() == 'none') {
-      tagPrefix = '';
-    }
-    core.info(`Tag Prefix: '${tagPrefix}'`);
-
     let versionToBuild;
     if (calculatePrereleaseVersion) {
-      const branchName = core.getInput('branch-name', requiredArgOptions);
+      const branchName = core.getInput('branch-name', requiredArgOptions); // Leave this here so it can be "required"
       core.info(`Calculating a pre-release version for ${branchName}...`);
 
       //This regex will strip out anything that's not a-z, 0-9 or the - character
@@ -70,17 +44,7 @@ async function run() {
       versionToBuild = nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch);
     }
 
-    // TODO: generate the sha from head https://github.com/im-open/git-version-lite/issues/24
-    const sha =
-      github.context.eventName === 'pull_request'
-        ? github.context.payload.pull_request.head.sha
-        : github.context.sha;
-
     const { nextVersion, priorVersion } = versionToBuild;
-
-    if (createRef) {
-      await createRefOnGitHub(`${tagPrefix}${nextVersion.toString()}`, sha);
-    }
 
     const outputVersionEntries = Object.entries({
       NEXT_VERSION: nextVersion.toString(),
@@ -89,8 +53,8 @@ async function run() {
       PRIOR_VERSION: priorVersion.toString()
     });
 
+    core.info(`\nFinished examining the git history.  The following outputs will be set:`);
     [
-      ['NEXT_VERSION_SHA', sha],
       ...outputVersionEntries.map(([name, value]) => [name, `${tagPrefix}${value}`]),
       ...outputVersionEntries.map(([name, value]) => [`${name}_NO_PREFIX`, value])
     ].forEach(entry => {

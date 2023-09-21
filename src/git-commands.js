@@ -31,21 +31,21 @@ module.exports = {
 
       if (!tags) {
         if (fallbackToNoPrefixSearch) {
-          core.info(
-            `No tags were found with the prefix '${prefix}'.  Falling back to searching with no prefix...`
-          );
+          const noTagsMsg = `No tags were found with the prefix '${prefix}'.  Falling back to searching with no prefix...`;
+          core.info(noTagsMsg);
           tags = git('tag');
         }
 
         if (!tags) {
-          const noTagsMsg =
-            'There do not appear to be any tags on the repository.  If that is not accurate, ensure fetch-depth: 0 is set on the checkout action.';
+          const noTagsMsg = `There do not appear to be any tags on the repository.  If that is not accurate, ensure fetch-depth: 0 is set on the checkout action.`;
           core.warning(noTagsMsg);
           return [];
         }
       }
 
-      core.info(`The following tags exist on the repository:\n${tags}\n`);
+      core.startGroup('Found Repository Tags');
+      core.info(`The following tags were found:\n${tags}\n`);
+      core.endGroup();
       return tags.split('\n').map(t => t.trim());
     } catch (error) {
       core.setFailed(`An error occurred listing the tags for the repository: ${error.message}`);

@@ -60,38 +60,41 @@ function getPriorReleaseCommit(tagPrefix, fallbackToNoPrefixSearch) {
  * @param {string} finalCommit a "commit-ish" string identifying the commit of the new release
  */
 function determineReleaseTypeFromGitLog(baseCommit, finalCommit) {
-  // look at git log messages since then for breaking changes or new features
+  // look at git log messages since the base commit for breaking changes or new features
   const commitObjects = git.logBetween(baseCommit, finalCommit);
   let releaseType = 'patch';
+  core.info('\nExamine commits to determine release type...');
+
   for (let i = 0; i < commitObjects.length; i++) {
     const commitObj = commitObjects[i];
+    const body = commitObj.rawBody ? commitObj.rawBody.trim() : '';
+    const notes = commitObj.commitNotes ? commitObj.commitNotes.trim() : '';
 
-    if (
-      commitPatterns.major.some(
-        pattern => pattern.test(commitObj.rawBody) || pattern.test(commitObj.commitNotes)
-      )
-    ) {
+    core.info(`--------------------------------------------------------------------------`);
+    core.startGroup(`Examine commit ${commitObj.abbreviatedCommitHash}`);
+    core.info(`RAW BODY: "${body}"`);
+    core.info(`\nCOMMIT NOTES: "${notes}"`);
+
+    if (commitPatterns.major.some(pattern => pattern.test(body) || pattern.test(notes))) {
       releaseType = 'major';
-      core.info('The following comment body or notes match the major pattern:');
-      if (commitObj.rawBody && commitObj.rawBody.length > 0)
-        core.info(`\tBody:"${commitObj.rawBody.trim()}"`);
-      if (commitObj.commitNotes && commitObj.commitNotes.length > 0)
-        core.info(`\tNotes:"${commitObj.commitNotes.trim()}"`);
+      core.info('\nThe comment body or notes match the major pattern.');
+      core.endGroup();
       break;
     }
-    if (
-      commitPatterns.minor.some(
-        pattern => pattern.test(commitObj.rawBody) || pattern.test(commitObj.commitNotes)
-      )
-    ) {
+    if (commitPatterns.minor.some(pattern => pattern.test(body) || pattern.test(notes))) {
       releaseType = 'minor';
-      core.info('The following comment body or notes match the minor pattern:');
-      if (commitObj.rawBody && commitObj.rawBody.length > 0)
-        core.info(`\tBody:"${commitObj.rawBody.trim()}"`);
-      if (commitObj.commitNotes && commitObj.commitNotes.length > 0)
-        core.info(`\tNotes:"${commitObj.commitNotes.trim()}"`);
+      core.info('\nThe comment body or notes match the minor pattern.');
+      core.endGroup();
+      // Don't break in here (like the major case above) so we can examine the remaining commits.
+    } else {
+      core.info('\nThe comment body does not match the major or minor pattern.');
+      core.endGroup();
     }
   }
+  core.info(`--------------------------------------------------------------------------`);
+  core.info(
+    `Finished examining commits.  Setting Release Type to '${releaseType}' based on git log.`
+  );
   return releaseType;
 }
 
@@ -142,13 +145,14 @@ function nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSea
   if (baseCommit === null) {
     priorReleaseVersion = '0.0.0';
     releaseType = defaultReleaseType;
-    core.info(`\nPrior release version default: ${priorReleaseVersion}`);
-    core.info(`Release Type: ${releaseType}`);
+    core.info(
+      `\nThe base commit was empty.  Use the default for prior release version: ${priorReleaseVersion}`
+    );
+    core.info(`\nSetting Release Type to '${releaseType}' based on empty base commit.`);
   } else {
     priorReleaseVersion = baseCommit.semver;
+    core.info(`\nThe base commit was found.  The prior release version is: ${priorReleaseVersion}`);
     releaseType = determineReleaseTypeFromGitLog(baseCommit.abbreviatedCommitHash, 'HEAD');
-    core.info(`\nPrior release version: ${priorReleaseVersion}`);
-    core.info(`Release Type: ${releaseType}`);
   }
 
   return {
@@ -180,13 +184,14 @@ function nextPrereleaseVersion(label, defaultReleaseType, tagPrefix, fallbackToN
   if (baseCommit === null) {
     priorReleaseVersion = '0.0.0';
     releaseType = defaultReleaseType;
-    core.info(`\nPrior release version default: ${priorReleaseVersion}`);
-    core.info(`Release Type: ${releaseType}`);
+    core.info(
+      `\nThe base commit was empty.  Use the default for prior release version: ${priorReleaseVersion}`
+    );
+    core.info(`\nSetting Release Type to '${releaseType}' based on empty base commit.`);
   } else {
     priorReleaseVersion = baseCommit.semver;
+    core.info(`\nThe base commit was found.  The prior release version is: ${priorReleaseVersion}`);
     releaseType = determineReleaseTypeFromGitLog(baseCommit.abbreviatedCommitHash, 'HEAD');
-    core.info(`\nPrior release version: ${priorReleaseVersion}`);
-    core.info(`Release Type: ${releaseType}`);
   }
   let nextReleaseVersion = semver.inc(priorReleaseVersion, releaseType);
   let prereleaseVersion = `${nextReleaseVersion}-${label}.${formattedDate}`;

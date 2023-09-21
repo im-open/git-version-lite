@@ -32,7 +32,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ref: main
           fetch-depth: 0
 
       - name: Check for code changes to the action source code
@@ -55,11 +54,11 @@ jobs:
         if: steps.source-code.outputs.HAS_CHANGES == 'true'
         id: version
         uses: ./
-
+        
       - name: The next action version will be - ${{ steps.version.outputs.NEXT_VERSION || 'N/A'}}
         if: steps.source-code.outputs.HAS_CHANGES == 'true'
         run: echo "The next action version will be - ${{ steps.version.outputs.NEXT_VERSION }}"
-
+      
   build-and-review-pr:
     runs-on: ubuntu-latest
     needs: [setup]
@@ -201,3 +200,37 @@ jobs:
               .addRaw(instructionsWithLinks)
               .write();
             core.setFailed(instructions);
+
+  # test:
+  #   runs-on: ubuntu-latest
+
+  #   env:
+  #     PRODUCTION_READY_TAG: 'v1.1.3'
+  #     PRE_RELEASE_TAG: 'v1.0.2'
+  #     DRAFT_RELEASE_TAG: 'v1.0.1'
+  #     NONEXISTENT_RELEASE_TAG: 'v304.973.444'
+
+  #   steps:
+  #     - uses: actions/checkout@v3
+
+  #     #--------------------------------------
+  #     # RELEASE IS PRODUCTION READY RELEASE
+  #     #--------------------------------------
+  #     - name: '-------------------------------------------------------------------------------------------------------'
+  #       run: echo ""
+  #     - name: When validating a prod ready release (${{ env.PRODUCTION_READY_TAG}})
+  #       uses: ./
+  #       if: always()
+  #       id: production-release
+  #       with:
+  #         token: ${{ secrets.GITHUB_TOKEN }}
+  #         release-tag: ${{ env.PRODUCTION_READY_TAG }}
+  #         fail-for-prerelease: false
+
+  #     - name: Then the outcome should be success
+  #       if: always()
+  #       run: ./test/assert-values-match.sh --name "step outcome" --expected "success" --actual "${{ steps.production-release.outcome }}"
+
+  #     - name: And the output should be true
+  #       if: always()
+  #       run: ./test/assert-values-match.sh --name "PRODUCTION_READY" --expected "true" --actual "${{ steps.production-release.outputs.PRODUCTION_READY }}"

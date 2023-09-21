@@ -8,9 +8,10 @@ This template can be used to calculate a release or pre-release version.
   - [Pre-requisites](#pre-requisites)
   - [Release vs Pre-release](#release-vs-pre-release)
   - [Incrementing Strategy](#incrementing-strategy)
-  - [Creating a Ref](#creating-a-ref)
   - [Inputs](#inputs)
   - [Outputs](#outputs)
+  - [Breaking Changes](#breaking-changes)
+    - [v2 to v3](#v2-to-v3)
   - [Usage Examples](#usage-examples)
   - [Contributing](#contributing)
     - [Incrementing the Version](#incrementing-the-version)
@@ -55,10 +56,6 @@ The action will increment the minor version if it identifies any of the followin
 
 If none of the previous patterns match, the action will increment the patch version.
 
-## Creating a Ref
-
-The action has a `create-ref` flag and when set to true it uses the GitHub rest API to [create a ref].  This API call results in a release and a tag being created.  This may be desirable in some workflows where you are incrementing on merge but may not work well for others like a CI build where you want to hold off pushing the ref until some steps have completed.
-
 ## Inputs
 
 | Parameter                      | Is Required                                            | Default | Description                                                                                                                                                                                                                                                                                                |
@@ -67,8 +64,6 @@ The action has a `create-ref` flag and when set to true it uses the GitHub rest 
 | `fallback-to-no-prefix-search` | false                                                  | `true`  | Flag indicating whether it should fallback to a prefix-less search if no tags are found with the current prefix.  Helpful when starting to use prefixes with tags.  Accepted values: true\|false.                                                                                                          |
 | `calculate-prerelease-version` | false                                                  | `false` | Flag indicating whether to calculate a pre-release version rather than a release version.  Accepts: `true\|false`.                                                                                                                                                                                         |
 | `branch-name`                  | Required when<br/>`calculate-prerelease-version: true` | N/A     | The name of the branch the next pre-release version is being generated for. Required when calculating the pre-release version.                                                                                                                                                                             |
-| `create-ref`                   | false                                                  | `false` | Flag indicating whether the action should [create a ref] (a release and tag) on the repository.    Accepted values: `true\|false`.                                                                                                                                                                         |
-| `github-token`                 | Required when<br/>`create-ref: true`                   | N/A     | Token with permissions to create a ref on the repository.                                                                                                                                                                                                                                                  |
 | `default-release-type`         | false                                                  | `major` | The default release type that should be used when no tags are detected.  Defaults to major.  Accepted values: `major\|minor\|patch`.                                                                                                                                                                       |
 
 ## Outputs
@@ -86,6 +81,19 @@ Each of the outputs are available as environment variables and as action outputs
 | `NEXT_VERSION_SHA`             | The SHA of the next version as an environment variable          |
 | `PRIOR_VERSION`                | The previous `major.minor.patch` version                        |
 | `PRIOR_VERSION_NO_PREFIX`      | The previous `major.minor.patch` version without the tag prefix |
+
+## Breaking Changes
+
+### v2 to v3
+
+- The `create-ref` input was removed
+  - This input has been deprecated for a while.  We recommend replacing this functionality with the `[im-open/create-release]` action.
+- The `github-token` input was removed
+  - This was only needed to create a ref on the repository so it is no longer needed.
+- The `NEXT_VERSION_SHA` output was removed
+  - Workflows can use the value that git-version-lite outputted directly.  
+  - For `pull_request` workflow triggers the value was `github.event.pull_request.head.sha`.  
+  - For all other workflow triggers the value was `github.sha`
 
 ## Usage Examples
 
@@ -107,16 +115,14 @@ jobs:
 
       - id: get-version
         # You may also reference just the major version.
-        uses: im-open/git-version-lite@v2.3.2
+        uses: im-open/git-version-lite@v3.0.0
         with:
           calculate-prerelease-version: true
           branch-name: ${{ github.head_ref }}       # github.head_ref works when the trigger is pull_request
           tag-prefix: v                             # Prepend a v to any calculated release/pre-release version
           fallback-to-no-prefix-search: true        # Set to true can be helpful when starting to add tag prefixes
           default-release-type: major               # If no tags are found, default to doing a major increment
-          create-ref: true                          # Will create a release/tag on the repo
-          github-token: ${{ secrets.GITHUB_TOKEN }} # Required when creating a ref
-      
+          
       - run: |
           echo "The next version is ${{ env.NEXT_VERSION }}"
           echo "The next version without the prefix is ${{ steps.get-version.outputs.NEXT_VERSION_NO_PREFIX }}"
