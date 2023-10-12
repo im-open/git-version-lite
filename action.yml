@@ -5,7 +5,7 @@ description: An action to calculate the next tag for the repository based on com
 inputs:
   calculate-prerelease-version:
     description: 'Flag indicating whether to calculate a pre-release version rather than a release version.  Accepts: true|false.'
-    required: true
+    required: false
     default: 'false'
 
   branch-name:
@@ -14,17 +14,17 @@ inputs:
 
   tag-prefix:
     description: 'By default the action strips the prefixes off, but any value provided here will be prepended to the next calculated version.'
-    required: true
+    required: false
     default: 'v'
 
   fallback-to-no-prefix-search:
     description: 'Flag indicating whether it should fallback to a prefix-less search if no tags are found with the current prefix.  Helpful when starting to use prefixes with tags.  Accepted values: true|false.'
-    required: true
+    required: false
     default: 'true'
 
   default-release-type:
     description: 'The default release type that should be used when no tags are detected.  Defaults to major.  Accepted values: major|minor|patch'
-    required: true
+    required: false
     default: 'major'
     
 outputs:

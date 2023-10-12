@@ -121,15 +121,17 @@ function dateToPreReleaseComponent(input) {
 
 /**
  * @typedef {{
- *  priorVersion: SemVer,
- *  nextVersion: SemVer
+ *  priorVersion: string,
+ *  nextPatch: string,
+ *  nextMinor: string,
+ *  nextMajor: string
  * }} ReleaseBucket
  */
 
 /**
  * @param defaultReleaseType {string} The default release type to use if no tags are detected
  * @param tagPrefix {string} The value to pre-pend to the calculated release
- * @returns {ReleaseBucket} a SemVer next and prior versions based on the Git history since the last tagged release
+ * @returns {ReleaseBucket} next and prior versions based on the Git history since the last tagged release
  */
 function nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch) {
   let baseCommit;
@@ -155,9 +157,13 @@ function nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSea
     releaseType = determineReleaseTypeFromGitLog(baseCommit.abbreviatedCommitHash, 'HEAD');
   }
 
+  const priorSemver = new SemVer(priorReleaseVersion);
+  const nextSemver = new SemVer(semver.inc(priorReleaseVersion, releaseType));
   return {
-    priorVersion: new SemVer(priorReleaseVersion),
-    nextVersion: new SemVer(semver.inc(priorReleaseVersion, releaseType))
+    priorVersion: priorSemver.toString(),
+    nextPatch: nextSemver.toString(),
+    nextMinor: `${nextSemver.major}.${nextSemver.minor}`,
+    nextMajor: `${nextSemver.major}`
   };
 }
 
@@ -175,9 +181,9 @@ function nextPrereleaseVersion(label, defaultReleaseType, tagPrefix, fallbackToN
   } catch (error) {
     core.info(`An error occurred retrieving the tags for the repository: ${error.message}`);
   }
-  let currentHeadCommit = git.commitMetadata('HEAD');
 
-  let formattedDate = dateToPreReleaseComponent(currentHeadCommit.committerDate);
+  const currentHeadCommit = git.commitMetadata('HEAD');
+  const formattedDate = dateToPreReleaseComponent(currentHeadCommit.committerDate);
 
   let priorReleaseVersion;
   let releaseType;
@@ -193,13 +199,17 @@ function nextPrereleaseVersion(label, defaultReleaseType, tagPrefix, fallbackToN
     core.info(`\nThe base commit was found.  The prior release version is: ${priorReleaseVersion}`);
     releaseType = determineReleaseTypeFromGitLog(baseCommit.abbreviatedCommitHash, 'HEAD');
   }
-  let nextReleaseVersion = semver.inc(priorReleaseVersion, releaseType);
-  let prereleaseVersion = `${nextReleaseVersion}-${label}.${formattedDate}`;
+  const nextReleaseVersion = semver.inc(priorReleaseVersion, releaseType);
+  const prereleaseVersion = `${nextReleaseVersion}-${label}.${formattedDate}`;
   core.info(`Cleaned Branch Name: '${label}'`);
 
+  const priorSemver = new SemVer(priorReleaseVersion);
+  const nextSemver = new SemVer(prereleaseVersion);
   return {
-    priorVersion: new SemVer(priorReleaseVersion),
-    nextVersion: new SemVer(prereleaseVersion)
+    priorVersion: priorSemver.toString(),
+    nextPatch: nextSemver.toString(),
+    nextMinor: `${nextSemver.major}.${nextSemver.minor}`,
+    nextMajor: `${nextSemver.major}`
   };
 }
 

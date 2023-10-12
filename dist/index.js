@@ -5176,9 +5176,13 @@ Setting Release Type to '${releaseType}' based on empty base commit.`);
 The base commit was found.  The prior release version is: ${priorReleaseVersion}`);
         releaseType = determineReleaseTypeFromGitLog(baseCommit.abbreviatedCommitHash, 'HEAD');
       }
+      const priorSemver = new SemVer(priorReleaseVersion);
+      const nextSemver = new SemVer(semver.inc(priorReleaseVersion, releaseType));
       return {
-        priorVersion: new SemVer(priorReleaseVersion),
-        nextVersion: new SemVer(semver.inc(priorReleaseVersion, releaseType))
+        priorVersion: priorSemver.toString(),
+        nextPatch: nextSemver.toString(),
+        nextMinor: `${nextSemver.major}.${nextSemver.minor}`,
+        nextMajor: `${nextSemver.major}`
       };
     }
     function nextPrereleaseVersion2(
@@ -5193,8 +5197,8 @@ The base commit was found.  The prior release version is: ${priorReleaseVersion}
       } catch (error) {
         core2.info(`An error occurred retrieving the tags for the repository: ${error.message}`);
       }
-      let currentHeadCommit = git.commitMetadata('HEAD');
-      let formattedDate = dateToPreReleaseComponent(currentHeadCommit.committerDate);
+      const currentHeadCommit = git.commitMetadata('HEAD');
+      const formattedDate = dateToPreReleaseComponent(currentHeadCommit.committerDate);
       let priorReleaseVersion;
       let releaseType;
       if (baseCommit === null) {
@@ -5210,12 +5214,16 @@ Setting Release Type to '${releaseType}' based on empty base commit.`);
 The base commit was found.  The prior release version is: ${priorReleaseVersion}`);
         releaseType = determineReleaseTypeFromGitLog(baseCommit.abbreviatedCommitHash, 'HEAD');
       }
-      let nextReleaseVersion3 = semver.inc(priorReleaseVersion, releaseType);
-      let prereleaseVersion = `${nextReleaseVersion3}-${label}.${formattedDate}`;
+      const nextReleaseVersion3 = semver.inc(priorReleaseVersion, releaseType);
+      const prereleaseVersion = `${nextReleaseVersion3}-${label}.${formattedDate}`;
       core2.info(`Cleaned Branch Name: '${label}'`);
+      const priorSemver = new SemVer(priorReleaseVersion);
+      const nextSemver = new SemVer(prereleaseVersion);
       return {
-        priorVersion: new SemVer(priorReleaseVersion),
-        nextVersion: new SemVer(prereleaseVersion)
+        priorVersion: priorSemver.toString(),
+        nextPatch: nextSemver.toString(),
+        nextMinor: `${nextSemver.major}.${nextSemver.minor}`,
+        nextMajor: `${nextSemver.major}`
       };
     }
     module2.exports = {
@@ -5239,6 +5247,16 @@ var tagPrefix = core.getInput('tag-prefix');
 if (tagPrefix.toLowerCase() == 'none') {
   tagPrefix = '';
 }
+function setTheOutputs(name, value, tagPrefix2) {
+  const valueWithTag = `${tagPrefix2}${value}`;
+  core.setOutput(name, valueWithTag);
+  core.exportVariable(name, valueWithTag);
+  core.info(`${name}: ${valueWithTag}`);
+  const noPrefixName = `${name}_NO_PREFIX`;
+  core.setOutput(noPrefixName, value);
+  core.exportVariable(noPrefixName, value);
+  core.info(`${noPrefixName}: ${value}`);
+}
 async function run() {
   try {
     const expectedReleaseTypes = ['major', 'minor', 'patch'];
@@ -5261,23 +5279,13 @@ async function run() {
       core.info(`Calculating a release version...`);
       versionToBuild = nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch);
     }
-    const { nextVersion, priorVersion } = versionToBuild;
-    const outputVersionEntries = Object.entries({
-      NEXT_VERSION: nextVersion.toString(),
-      NEXT_MINOR_VERSION: `${nextVersion.major}.${nextVersion.minor}`,
-      NEXT_MAJOR_VERSION: nextVersion.major,
-      PRIOR_VERSION: priorVersion.toString()
-    });
-    core.info(`
-Finished examining the git history.  The following outputs will be set:`);
-    [
-      ...outputVersionEntries.map(([name, value]) => [name, `${tagPrefix}${value}`]),
-      ...outputVersionEntries.map(([name, value]) => [`${name}_NO_PREFIX`, value])
-    ].forEach(entry => {
-      core.setOutput(...entry);
-      core.exportVariable(...entry);
-      console.info(...entry);
-    });
+    console.log('version to build:');
+    console.log(versionToBuild);
+    const { nextPatch, nextMinor, nextMajor, priorVersion } = versionToBuild;
+    setTheOutputs('PRIOR_VERSION', priorVersion, tagPrefix);
+    setTheOutputs('NEXT_VERSION', nextPatch, tagPrefix);
+    setTheOutputs('NEXT_MINOR_VERSION', nextMinor, tagPrefix);
+    setTheOutputs('NEXT_MAJOR_VERSION', nextMajor, tagPrefix);
   } catch (error) {
     const versionTxt = calculatePrereleaseVersion ? 'pre-release' : 'release';
     core.setFailed(

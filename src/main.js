@@ -17,6 +17,20 @@ if (tagPrefix.toLowerCase() == 'none') {
   tagPrefix = ''; //action.yml sets it to v by default so the user wouldn't be able to set an empty string themselves.
 }
 
+function setTheOutputs(name, value, tagPrefix) {
+  // Set the regular version (it has a tag prefix)
+  const valueWithTag = `${tagPrefix}${value}`;
+  core.setOutput(name, valueWithTag);
+  core.exportVariable(name, valueWithTag);
+  core.info(`${name}: ${valueWithTag}`);
+
+  // Set the version without the tag prefix
+  const noPrefixName = `${name}_NO_PREFIX`;
+  core.setOutput(noPrefixName, value);
+  core.exportVariable(noPrefixName, value);
+  core.info(`${noPrefixName}: ${value}`);
+}
+
 async function run() {
   try {
     const expectedReleaseTypes = ['major', 'minor', 'patch'];
@@ -44,24 +58,14 @@ async function run() {
       versionToBuild = nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSearch);
     }
 
-    const { nextVersion, priorVersion } = versionToBuild;
+    console.log('version to build:');
+    console.log(versionToBuild);
 
-    const outputVersionEntries = Object.entries({
-      NEXT_VERSION: nextVersion.toString(),
-      NEXT_MINOR_VERSION: `${nextVersion.major}.${nextVersion.minor}`,
-      NEXT_MAJOR_VERSION: nextVersion.major,
-      PRIOR_VERSION: priorVersion.toString()
-    });
-
-    core.info(`\nFinished examining the git history.  The following outputs will be set:`);
-    [
-      ...outputVersionEntries.map(([name, value]) => [name, `${tagPrefix}${value}`]),
-      ...outputVersionEntries.map(([name, value]) => [`${name}_NO_PREFIX`, value])
-    ].forEach(entry => {
-      core.setOutput(...entry);
-      core.exportVariable(...entry);
-      console.info(...entry);
-    });
+    const { nextPatch, nextMinor, nextMajor, priorVersion } = versionToBuild;
+    setTheOutputs('PRIOR_VERSION', priorVersion, tagPrefix);
+    setTheOutputs('NEXT_VERSION', nextPatch, tagPrefix);
+    setTheOutputs('NEXT_MINOR_VERSION', nextMinor, tagPrefix);
+    setTheOutputs('NEXT_MAJOR_VERSION', nextMajor, tagPrefix);
   } catch (error) {
     const versionTxt = calculatePrereleaseVersion ? 'pre-release' : 'release';
     core.setFailed(
