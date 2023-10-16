@@ -240,6 +240,13 @@ jobs:
       #--------------------------------------
       # SETUP
       #--------------------------------------
+      - name: Fail test job if fork
+        run: |
+          if [ "${{ github.event.pull_request.head.repo.fork }}" == "true" ]; then
+            echo "This test job requires secrets that PRs from forks will not have access to.  Before this PR can be merged, the tests should be run on an intermediate branch created by repository owners."
+            exit 1
+          fi
+
       - name: '-------------------------------------------------------------------------------------------------------'
         run: echo ""
 
