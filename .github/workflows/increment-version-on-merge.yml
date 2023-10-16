@@ -29,6 +29,15 @@ on:
   #   if this action should be incremented and if new tags should be pushed to the repo based
   #   on the same criteria used in the build-and-review-pr.yml workflow.
 
+
+# ------------------------------------------------------------------------------------
+# NOTE: This repo duplicates the reusable increment workflow in im-open/.github that
+#       the rest of the actions use.  If changes are needed in this workflow they 
+#       should also be made in im-open/.github.  This workflow is duplicated because
+#       it uses the local copy of itself in the workflow which allows us to test the
+#       increment build with git-version-lite changes before we merge those changes.
+# ------------------------------------------------------------------------------------
+
 jobs:
   increment-version:
     runs-on: ubuntu-latest

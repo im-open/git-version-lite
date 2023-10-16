@@ -21,8 +21,16 @@ on:
   #   without disabling that requirement.  If we have a status check that is always produced,
   #   we can also use that to require all branches be up to date before they are merged.
 
+# -------------------------------------------------------------------------------------
+# NOTE: This repo duplicates the reusable build-and-review workflow in im-open/.github
+#       that the rest of the actions use.  If changes are needed in this workflow the
+#       same changes should be made in im-open/.github.  This workflow is duplicated
+#       so it can use a local copy of itself in the workflow.  This allows us to test
+#       the build pipeline with git-version-lite changes before we merge those changes.
+# -------------------------------------------------------------------------------------
+
 jobs:
-  setup:
+  setup-build-and-review:
     runs-on: ubuntu-latest
     outputs:
       HAS_SOURCE_CODE_CHANGES: ${{ steps.source-code.outputs.HAS_CHANGES }}
@@ -32,12 +40,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ref: main
           fetch-depth: 0
 
       - name: Check for code changes to the action source code
         id: source-code
-        uses: im-open/did-custom-action-code-change@v1
+        uses: im-open/.github/.github/actions/did-custom-action-code-change@v1
         with:
           files-with-code: 'action.yml,package.json,package-lock.json'
           folders-with-code: 'src,dist'
@@ -62,11 +69,11 @@ jobs:
 
   build-and-review-pr:
     runs-on: ubuntu-latest
-    needs: [setup]
+    needs: [setup-build-and-review]
 
     env:
-      NEXT_VERSION: ${{ needs.setup.outputs.NEXT_VERSION || 'N/A' }}
-      HAS_CODE_CHANGES: ${{ needs.setup.outputs.HAS_SOURCE_CODE_CHANGES }}
+      NEXT_VERSION: ${{ needs.setup-build-and-review.outputs.NEXT_VERSION || 'N/A' }}
+      HAS_CODE_CHANGES: ${{ needs.setup-build-and-review.outputs.HAS_SOURCE_CODE_CHANGES }}
       IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
       PR_SOURCE: ${{ github.event.pull_request.head.repo.fork == true && 'fork' || 'branch' }}
       README: README.md
@@ -127,7 +134,7 @@ jobs:
       - name: ${{ env.README }} - Update version to @${{ env.NEXT_VERSION }}
         if: env.HAS_CODE_CHANGES == 'true'
         id: update-readme
-        uses: im-open/update-action-version-in-file@v1
+        uses: im-open/.github/.github/actions/update-action-version-in-file@v1
         with:
           file-to-update: ./${{ env.README }} # Default: 'README.md'
           action-name: ${{ github.repository }}
@@ -171,12 +178,12 @@ jobs:
             let instructions = `Before this PR can be merged, the following item(s) should be addressed to comply with the action's ${contributingTitle} Guidelines.`
             if (needsReadmeChanges) {
               instructions += `
-            - Please update the action's version in the ${readmeExampleTitle} section of ${{ env.README }}.  Each instance of this action should be updated to: 
+            - Please update the action's version in the ${readmeExampleTitle} section of ${{ env.README }}.  Each instance of this action should be updated to:
               \`uses: ${{ github.repository }}@${{ env.NEXT_VERSION }}\``;
             }
             if (needsBuildChanges){
               instructions += `
-            - Please ensure the action has been recompiled by running the following command from the root of the repository: 
+            - Please ensure the action has been recompiled by running the following command from the root of the repository:
               \`npm run build\``;
             }
 
@@ -185,7 +192,7 @@ jobs:
               .replace('of ${{ env.README }}.', `of [${{ env.README }}](${readmeLink}).`)
               .replace(`${contributingTitle} Guidelines`, `[${contributingTitle} Guidelines](${contributionLink})`)
               .replace(readmeExampleTitle, `[${readmeExampleTitle}](${readmeExampleLink})`);
-                        
+
             // Comment on PR for branches.  A fork's GH_TOKEN only has 'read' permission on all scopes so a comment cannot be made.
             if (!${{ env.IS_FORK }}) {
               github.rest.issues.createComment({
@@ -201,3 +208,661 @@ jobs:
               .addRaw(instructionsWithLinks)
               .write();
             core.setFailed(instructions);
+
+  test-general:
+    runs-on: ubuntu-latest
+
+    env:
+      # These env variables are set by git-version-lite
+      PRIOR_VERSION: ''
+      NEXT_VERSION: ''
+      NEXT_MINOR_VERSION: ''
+      NEXT_MAJOR_VERSION: ''
+      PRIOR_VERSION_NO_PREFIX: ''
+      NEXT_VERSION_NO_PREFIX: ''
+      NEXT_MINOR_VERSION_NO_PREFIX: ''
+      NEXT_MAJOR_VERSION_NO_PREFIX: ''
+
+      # Info for the repo we'll be testing git-version-lite against
+      TESTING_REPO: 'im-open/internal-repo-for-testing'
+      TEST_BRANCH: 'my-test-branch'
+
+      # These is based on the fetch-depth not being set. git-version-lite starts from 0.0.0 when calculating the next version
+      PRIOR_TAG: '0.0.0'
+
+      # This will be the next set of tags if it falls back to using the un-prefixed tag on the repo
+      PRIOR_TAG_FOR_FALLBACK: '1.1.0'
+      NEXT_PATCH_TAG_FOR_FALLBACK: '1.1.1'
+      NEXT_MINOR_TAG_FOR_FALLBACK: '1.1'
+      NEXT_MAJOR_TAG_FOR_FALLBACK: '1'
+
+    steps:
+      #--------------------------------------
+      # SETUP
+      #--------------------------------------
+      - name: Fail test job if fork
+        run: |
+          if [ "${{ github.event.pull_request.head.repo.fork }}" == "true" ]; then
+            echo "This test job requires secrets that PRs from forks will not have access to.  Before this PR can be merged, the tests should be run on an intermediate branch created by repository owners."
+            exit 1
+          fi
+
+      - name: '-------------------------------------------------------------------------------------------------------'
+        run: echo ""
+
+      - name: Setup - Checkout testing repo in the root directory
+        if: always()
+        uses: actions/checkout@v3
+        with:
+          ref: main
+          repository: ${{ env.TESTING_REPO }}
+          ssh-key: ${{ secrets.SSH_KEY_TESTING_REPO }}
+          # fetch-depth: 0  # Do not use this because we want to test what happens when fetch-depth is not set
+
+      - name: Setup - Checkout this action (git-version-lite) into a 'gvl' subdirectory
+        if: always()
+        uses: actions/checkout@v3
+        with:
+          path: ./gvl
+
+      - name: Setup - List directories
+        if: always()
+        run: |
+          echo -e "\nRoot directory contents:"
+          ls -a
+
+          echo -e "\ngit-version-lite contents:"
+          ls -a ./gvl
+
+      #--------------------------------------
+      # UNEXPECTED RELEASE TYPE
+      #--------------------------------------
+      - name: '-------------------------------------------------------------------------------------------------------'
+        run: echo ""
+
+      - name: When a new version is requested with an unexpected default release type
+        if: always()
+        uses: ./gvl
+        id: unexpected-release-type
+        continue-on-error: true # This is needed because we expect the step to fail.  We need it to "pass" in order for the test job to succeed.
+        with:
+          default-release-type: 'unexpected'
+          # calculate-prerelease-version: false
+          # branch-name: ''
+          # tag-prefix: v
+          # fallback-to-no-prefix-search: true
+
+      - name: Then the outcome should be failure
+        if: always()
+        run: ./gvl/test/assert-values-match.sh --name "step outcome" --expected "failure" --actual "${{ steps.unexpected-release-type.outcome }}"
+
+      - name: Then the outputs should be empty
+        if: always()
+        run: |
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION output" --expected "" --actual "${{ steps.unexpected-release-type.outputs.PRIOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION_NO_PREFIX output" --expected "" --actual "${{ steps.unexpected-release-type.outputs.PRIOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_VERSION output" --expected "" --actual "${{ steps.unexpected-release-type.outputs.NEXT_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_VERSION_NO_PREFIX output" --expected "" --actual "${{ steps.unexpected-release-type.outputs.NEXT_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION output" --expected "" --actual "${{ steps.unexpected-release-type.outputs.NEXT_MINOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION_NO_PREFIX output" --expected "" --actual "${{ steps.unexpected-release-type.outputs.NEXT_MINOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION output" --expected "" --actual "${{ steps.unexpected-release-type.outputs.NEXT_MAJOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION_NO_PREFIX output" --expected "" --actual "${{ steps.unexpected-release-type.outputs.NEXT_MAJOR_VERSION_NO_PREFIX }}"
+
+      - name: And the environment variables should be empty
+        if: always()
+        run: |
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION env" --expected "" --actual "${{ env.PRIOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION_NO_PREFIX env" --expected "" --actual "${{ env.PRIOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_VERSION env" --expected "" --actual "${{ env.NEXT_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_VERSION_NO_PREFIX env" --expected "" --actual "${{ env.NEXT_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION env" --expected "" --actual "${{ env.NEXT_MINOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION_NO_PREFIX env" --expected "" --actual "${{ env.NEXT_MINOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION env" --expected "" --actual "${{ env.NEXT_MAJOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION_NO_PREFIX env" --expected "" --actual "${{ env.NEXT_MAJOR_VERSION_NO_PREFIX }}"
+
+      #--------------------------------------
+      # FALLBACK TO NO PREFIX
+      #--------------------------------------
+      - name: '-------------------------------------------------------------------------------------------------------'
+        run: echo ""
+
+      - name: When a repo has all of its tags locally
+        run: git fetch -t
+
+      - name: And a new version is requested with fallback-to-no-prefix set
+        if: always()
+        uses: ./gvl
+        id: fallback
+        continue-on-error: true # This is needed because we expect the step to fail.  We need it to "pass" in order for the test job to succeed.
+        with:
+          # This prefix won't match anything but it should fall back to searching with no prefix (there will be one at 1.1.0)
+          tag-prefix: qbdb
+          fallback-to-no-prefix-search: true
+
+      - name: Then the outcome should be success
+        if: always()
+        run: ./gvl/test/assert-values-match.sh --name "step outcome" --expected "success" --actual "${{ steps.fallback.outcome }}"
+
+      - name: Then the outputs should be based on the no-prefix patch increment
+        if: always()
+        run: |
+          prefix="qbdb"
+          prior="${{ env.PRIOR_TAG_FOR_FALLBACK }}"
+          patch="${{ env.NEXT_PATCH_TAG_FOR_FALLBACK}}"
+          minor="${{ env.NEXT_MINOR_TAG_FOR_FALLBACK}}"
+          major="${{ env.NEXT_MAJOR_TAG_FOR_FALLBACK}}"
+
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION"      --expected "$prefix$prior" --actual "${{ steps.fallback.outputs.PRIOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_VERSION"       --expected "$prefix$patch" --actual "${{ steps.fallback.outputs.NEXT_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION" --expected "$prefix$minor" --actual "${{ steps.fallback.outputs.NEXT_MINOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION" --expected "$prefix$major" --actual "${{ steps.fallback.outputs.NEXT_MAJOR_VERSION }}"
+
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION_NO_PREFIX"      --expected "$prior" --actual "${{ steps.fallback.outputs.PRIOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_VERSION_NO_PREFIX"       --expected "$patch" --actual "${{ steps.fallback.outputs.NEXT_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION_NO_PREFIX" --expected "$minor" --actual "${{ steps.fallback.outputs.NEXT_MINOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION_NO_PREFIX" --expected "$major" --actual "${{ steps.fallback.outputs.NEXT_MAJOR_VERSION_NO_PREFIX }}"
+
+      - name: And the environment variables should be based on the no-prefix patch increment
+        if: always()
+        run: |
+          prefix="qbdb"
+          prior="${{ env.PRIOR_TAG_FOR_FALLBACK }}"
+          patch="${{ env.NEXT_PATCH_TAG_FOR_FALLBACK}}"
+          minor="${{ env.NEXT_MINOR_TAG_FOR_FALLBACK}}"
+          major="${{ env.NEXT_MAJOR_TAG_FOR_FALLBACK}}"
+
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION"      --expected "$prefix$prior" --actual "${{ env.PRIOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_VERSION"       --expected "$prefix$patch" --actual "${{ env.NEXT_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION" --expected "$prefix$minor" --actual "${{ env.NEXT_MINOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION" --expected "$prefix$major" --actual "${{ env.NEXT_MAJOR_VERSION }}"
+
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION_NO_PREFIX"      --expected "$prior" --actual "${{ env.PRIOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_VERSION_NO_PREFIX"       --expected "$patch" --actual "${{ env.NEXT_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION_NO_PREFIX" --expected "$minor" --actual "${{ env.NEXT_MINOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION_NO_PREFIX" --expected "$major" --actual "${{ env.NEXT_MAJOR_VERSION_NO_PREFIX }}"
+
+  test-no-base-commits:
+    runs-on: ubuntu-latest
+
+    env:
+      # These env variables are set by git-version-lite
+      PRIOR_VERSION: ''
+      NEXT_VERSION: ''
+      NEXT_MINOR_VERSION: ''
+      NEXT_MAJOR_VERSION: ''
+      PRIOR_VERSION_NO_PREFIX: ''
+      NEXT_VERSION_NO_PREFIX: ''
+      NEXT_MINOR_VERSION_NO_PREFIX: ''
+      NEXT_MAJOR_VERSION_NO_PREFIX: ''
+
+      # Info for the repo we'll be testing git-version-lite against
+      TESTING_REPO: 'im-open/internal-repo-for-testing'
+      TEST_BRANCH: 'my-test-branch'
+
+      # These NEXT tags are set based on the fetch-depth not being set, so
+      # git-version-lite starts from 0.0.0 when calculating the next version
+      PRIOR_TAG: '0.0.0'
+
+      # This will be the next set of tags if default release type is 'minor'
+      NEXT_PATCH_TAG_FOR_MINOR_RELEASE_TYPE: '0.1.0'
+      NEXT_MINOR_TAG_FOR_MINOR_RELEASE_TYPE: '0.1'
+      NEXT_MAJOR_TAG_FOR_MINOR_RELEASE_TYPE: '0'
+
+      # This will be the next set of tags if default release type is 'major'
+      NEXT_PATCH_TAG_FOR_MAJOR_RELEASE_TYPE: '1.0.0'
+      NEXT_MINOR_TAG_FOR_MAJOR_RELEASE_TYPE: '1.0'
+      NEXT_MAJOR_TAG_FOR_MAJOR_RELEASE_TYPE: '1'
+
+    steps:
+      #--------------------------------------
+      # SETUP
+      #--------------------------------------
+      - name: '-------------------------------------------------------------------------------------------------------'
+        run: echo ""
+
+      - name: Setup - Checkout testing repo in the root directory
+        if: always()
+        uses: actions/checkout@v3
+        with:
+          ref: main
+          repository: ${{ env.TESTING_REPO }}
+          ssh-key: ${{ secrets.SSH_KEY_TESTING_REPO }}
+          # fetch-depth: 0  # Do not use this because we want to test what happens when fetch-depth is not set
+
+      - name: Setup - Checkout this action (git-version-lite) into a 'gvl' subdirectory
+        if: always()
+        uses: actions/checkout@v3
+        with:
+          path: ./gvl
+
+      - name: Setup - List directories
+        if: always()
+        run: |
+          echo -e "\nRoot directory contents:"
+          ls -a
+
+          echo -e "\ngit-version-lite contents:"
+          ls -a ./gvl
+
+      #-------------------------------------------------
+      # BASE COMMIT CANNOT BE DETERMINED FOR PRE-RELEASE
+      #-------------------------------------------------
+      - name: '-------------------------------------------------------------------------------------------------------'
+        run: echo ""
+
+      - name: When a repo has been cloned without history or tags
+        run: ''
+
+      - name: And a pre-release version is requested with a default-release-type of minor and a prefix of 'c'
+        if: always()
+        uses: ./gvl
+        id: prerelease-version
+        with:
+          calculate-prerelease-version: true
+          branch-name: 'refs/heads/my@test branch' # This should be cleaned up to 'my-test-branch' by git-version-lite
+          default-release-type: minor
+          tag-prefix: c
+          #fallback-to-no-prefix-search: true
+
+      - name: Then the outcome should be success
+        if: always()
+        run: ./gvl/test/assert-values-match.sh --name "step outcome" --expected "success" --actual "${{ steps.prerelease-version.outcome }}"
+
+      - name: Then the outputs should be based on the next minor version which includes the branch name in NEXT_VERSION
+        if: always()
+        run: |
+
+          # In addition to the next semantic version, NEXT_VERSION will contain the branch name and a timestamp. Test
+          # that it contains the parts we know (version and branch name).  We don't know the timestamp, so ignore that.
+          prefix="c"
+          patch="${{ env.NEXT_PATCH_TAG_FOR_MINOR_RELEASE_TYPE}}"
+          branch="${{ env.TEST_BRANCH }}"
+          substring="$patch-$branch."
+          ./gvl/test/assert-string-contains-substring.sh --name "NEXT_VERSION"           --substring "$prefix$substring" --string "${{ steps.prerelease-version.outputs.NEXT_VERSION }}"
+          ./gvl/test/assert-string-contains-substring.sh --name "NEXT_VERSION_NO_PREFIX" --substring "$substring"        --string "${{ steps.prerelease-version.outputs.NEXT_VERSION_NO_PREFIX }}"
+
+          # These vars will NOT contain the branch name or timestamp so test these as exact matches.
+          prior="${{ env.PRIOR_TAG }}"
+          minor="${{ env.NEXT_MINOR_TAG_FOR_MINOR_RELEASE_TYPE}}"
+          major="${{ env.NEXT_MAJOR_TAG_FOR_MINOR_RELEASE_TYPE}}"
+
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION"      --expected "$prefix$prior" --actual "${{ steps.prerelease-version.outputs.PRIOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION" --expected "$prefix$minor" --actual "${{ steps.prerelease-version.outputs.NEXT_MINOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION" --expected "$prefix$major" --actual "${{ steps.prerelease-version.outputs.NEXT_MAJOR_VERSION }}"
+
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION_NO_PREFIX"      --expected "$prior" --actual "${{ steps.prerelease-version.outputs.PRIOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION_NO_PREFIX" --expected "$minor" --actual "${{ steps.prerelease-version.outputs.NEXT_MINOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION_NO_PREFIX" --expected "$major" --actual "${{ steps.prerelease-version.outputs.NEXT_MAJOR_VERSION_NO_PREFIX }}"
+
+      - name: And the environment variables should be based on the next minor version which includes the branch name in NEXT_VERSION
+        if: always()
+        run: |
+
+          # In addition to the next semantic version, NEXT_VERSION will contain the branch name and a timestamp. Test
+          # that it contains the parts we know (version and branch name).  We don't know the timestamp, so ignore that.
+          prefix="c"
+          patch="${{ env.NEXT_PATCH_TAG_FOR_MINOR_RELEASE_TYPE}}"
+          branch="${{ env.TEST_BRANCH }}"
+          substring="$patch-$branch."
+          ./gvl/test/assert-string-contains-substring.sh --name "NEXT_VERSION"           --substring "$prefix$substring" --string "${{ env.NEXT_VERSION }}"
+          ./gvl/test/assert-string-contains-substring.sh --name "NEXT_VERSION_NO_PREFIX" --substring "$substring"        --string "${{ env.NEXT_VERSION_NO_PREFIX }}"
+
+          # These vars will NOT contain the branch name or timestamp so test these as exact matches.
+          prior="${{ env.PRIOR_TAG }}"
+          minor="${{ env.NEXT_MINOR_TAG_FOR_MINOR_RELEASE_TYPE}}"
+          major="${{ env.NEXT_MAJOR_TAG_FOR_MINOR_RELEASE_TYPE}}"
+
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION"      --expected "$prefix$prior" --actual "${{ env.PRIOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION" --expected "$prefix$minor" --actual "${{ env.NEXT_MINOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION" --expected "$prefix$major" --actual "${{ env.NEXT_MAJOR_VERSION }}"
+
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION_NO_PREFIX"      --expected "$prior" --actual "${{ env.PRIOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION_NO_PREFIX" --expected "$minor" --actual "${{ env.NEXT_MINOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION_NO_PREFIX" --expected "$major" --actual "${{ env.NEXT_MAJOR_VERSION_NO_PREFIX }}"
+
+      #---------------------------------------------
+      # BASE COMMIT CANNOT BE DETERMINED FOR RELEASE
+      #---------------------------------------------
+      - name: '-------------------------------------------------------------------------------------------------------'
+        run: echo ""
+
+      - name: When a repo has been cloned without history or tags
+        run: ''
+
+      - name: And a release version is requested with a default-release-type of major and prefix of 'none'
+        if: always()
+        uses: ./gvl
+        id: release-version
+        with:
+          calculate-prerelease-version: false
+          default-release-type: major
+          tag-prefix: none
+          #branch-name: ''
+          #fallback-to-no-prefix-search: true
+
+      - name: Then the outcome should be success
+        if: always()
+        run: ./gvl/test/assert-values-match.sh --name "step outcome" --expected "success" --actual "${{ steps.release-version.outcome }}"
+
+      - name: And the outputs should be based on the next major version
+        if: always()
+        run: |
+          prior="${{ env.PRIOR_TAG }}"
+          patch="${{ env.NEXT_PATCH_TAG_FOR_MAJOR_RELEASE_TYPE}}"
+          minor="${{ env.NEXT_MINOR_TAG_FOR_MAJOR_RELEASE_TYPE}}"
+          major="${{ env.NEXT_MAJOR_TAG_FOR_MAJOR_RELEASE_TYPE}}"
+
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION"      --expected "$prior" --actual "${{ steps.release-version.outputs.PRIOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_VERSION"       --expected "$patch" --actual "${{ steps.release-version.outputs.NEXT_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION" --expected "$minor" --actual "${{ steps.release-version.outputs.NEXT_MINOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION" --expected "$major" --actual "${{ steps.release-version.outputs.NEXT_MAJOR_VERSION }}"
+
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION_NO_PREFIX"      --expected "$prior" --actual "${{ steps.release-version.outputs.PRIOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_VERSION_NO_PREFIX"       --expected "$patch" --actual "${{ steps.release-version.outputs.NEXT_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION_NO_PREFIX" --expected "$minor" --actual "${{ steps.release-version.outputs.NEXT_MINOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION_NO_PREFIX" --expected "$major" --actual "${{ steps.release-version.outputs.NEXT_MAJOR_VERSION_NO_PREFIX }}"
+
+      - name: And the environment variables should be based on the next major version
+        if: always()
+        run: |
+          prior="${{ env.PRIOR_TAG }}"
+          patch="${{ env.NEXT_PATCH_TAG_FOR_MAJOR_RELEASE_TYPE}}"
+          minor="${{ env.NEXT_MINOR_TAG_FOR_MAJOR_RELEASE_TYPE}}"
+          major="${{ env.NEXT_MAJOR_TAG_FOR_MAJOR_RELEASE_TYPE}}"
+
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION"      --expected "$prior" --actual "${{ env.PRIOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_VERSION"       --expected "$patch" --actual "${{ env.NEXT_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION" --expected "$minor" --actual "${{ env.NEXT_MINOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION" --expected "$major" --actual "${{ env.NEXT_MAJOR_VERSION }}"
+
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION_NO_PREFIX"      --expected "$prior" --actual "${{ env.PRIOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_VERSION_NO_PREFIX"       --expected "$patch" --actual "${{ env.NEXT_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION_NO_PREFIX" --expected "$minor" --actual "${{ env.NEXT_MINOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION_NO_PREFIX" --expected "$major" --actual "${{ env.NEXT_MAJOR_VERSION_NO_PREFIX }}"
+
+      - name: '-------------------------------------------------------------------------------------------------------'
+        run: echo ""
+
+  test-incrementing:
+    runs-on: ubuntu-latest
+
+    env:
+      # These env variables are set by git-version-lite
+      PRIOR_VERSION: ''
+      NEXT_VERSION: ''
+      NEXT_MINOR_VERSION: ''
+      NEXT_MAJOR_VERSION: ''
+      PRIOR_VERSION_NO_PREFIX: ''
+      NEXT_VERSION_NO_PREFIX: ''
+      NEXT_MINOR_VERSION_NO_PREFIX: ''
+      NEXT_MAJOR_VERSION_NO_PREFIX: ''
+
+      # Info for the repo we'll be testing git-version-lite against
+      TESTING_REPO: 'im-open/internal-repo-for-testing'
+      TEST_BRANCH: 'my-test-branch'
+
+      # All the remaining tags are for TESTING_REPO.  If anything changes tag-wise in that repo, these values need to be updated.
+      PRIOR_TAG: '1.1.0'
+
+    strategy:
+      matrix:
+        include:
+          - scenario: 1
+            expected-increment: 'patch'
+            message: 'Small changes to the repo'
+            next-patch: '1.1.1'
+            next-minor: '1.1'
+            next-major: '1'
+          - scenario: 2
+            expected-increment: 'minor'
+            message: 'Minor changes to the repo +semver:minor'
+            next-patch: '1.2.0'
+            next-minor: '1.2'
+            next-major: '1'
+          - scenario: 3
+            expected-increment: 'minor'
+            message: 'Adding a new feature to the repo +semver: feature'
+            next-patch: '1.2.0'
+            next-minor: '1.2'
+            next-major: '1'
+          - scenario: 4
+            expected-increment: 'minor'
+            message: 'feat(users): Adding a new thing'
+            next-patch: '1.2.0'
+            next-minor: '1.2'
+            next-major: '1'
+          - scenario: 5
+            expected-increment: 'minor'
+            message: 'feat(): Adding a new thing for users'
+            next-patch: '1.2.0'
+            next-minor: '1.2'
+            next-major: '1'
+          - scenario: 6
+            expected-increment: 'minor'
+            message: 'feat(group): Adding a new thing'
+            next-patch: '1.2.0'
+            next-minor: '1.2'
+            next-major: '1'
+          - scenario: 7
+            expected-increment: 'minor'
+            message: 'feat(group): Adding a new thing for groups'
+            next-patch: '1.2.0'
+            next-minor: '1.2'
+            next-major: '1'
+          - scenario: 8
+            expected-increment: 'minor'
+            message: 'feat: Adding a new thing for settings'
+            next-patch: '1.2.0'
+            next-minor: '1.2'
+            next-major: '1'
+          - scenario: 9
+            expected-increment: 'minor'
+            message: 'feature: Adding a new thing for mode'
+            next-patch: '1.2.0'
+            next-minor: '1.2'
+            next-major: '1'
+          - scenario: 10
+            expected-increment: 'major'
+            message: 'Making a big change +semver:major'
+            next-patch: '2.0.0'
+            next-minor: '2.0'
+            next-major: '2'
+          - scenario: 11
+            expected-increment: 'major'
+            message: '+semver:breaking - adding required input'
+            next-patch: '2.0.0'
+            next-minor: '2.0'
+            next-major: '2'
+          - scenario: 12
+            expected-increment: 'major'
+            message: 'BREAKING CHANGES: removing input a'
+            next-patch: '2.0.0'
+            next-minor: '2.0'
+            next-major: '2'
+          - scenario: 13
+            expected-increment: 'major'
+            message: 'BREAKING CHANGE: removing input b'
+            next-patch: '2.0.0'
+            next-minor: '2.0'
+            next-major: '2'
+          - scenario: 14
+            expected-increment: 'major'
+            message: 'BREAKING CHANGE - removing input c'
+            next-patch: '2.0.0'
+            next-minor: '2.0'
+            next-major: '2'
+
+    steps:
+      #-----------------------
+      # SETUP
+      #-----------------------
+      - name: '-------------------------------------------------------------------------------------------------------'
+        run: echo ""
+      - name: 'SCENARIO ${{ matrix.scenario }}'
+        run: echo ""
+      - name: '-------------------------------------------------------------------------------------------------------'
+        run: echo ""
+
+      - name: Setup - Checkout testing repo in the root directory
+        if: always()
+        uses: actions/checkout@v3
+        with:
+          ref: main
+          repository: ${{ env.TESTING_REPO }}
+          fetch-depth: 0
+          ssh-key: ${{ secrets.SSH_KEY_TESTING_REPO }}
+
+      - name: Setup - Checkout this action (git-version-lite) into a 'gvl' subdirectory
+        if: always()
+        uses: actions/checkout@v3
+        with:
+          path: ./gvl
+
+      - name: Setup - List directories
+        if: always()
+        run: |
+          echo -e "\nRoot directory contents:"
+          ls -a
+
+          echo -e "\ngit-version-lite contents:"
+          ls -a ./gvl
+
+      - name: Setup - Add commit to a branch that coincides with ${{ matrix.expected-increment }} changes
+        if: always()
+        run: |
+          git config user.name my-bot
+          git config user.email my-bot@im-open.com
+
+          git fetch
+          git checkout -b ${{ env.TEST_BRANCH }}
+          git commit --allow-empty -m "${{ matrix.message}}"
+
+      #-----------------------
+      # PRE-RELEASE
+      #-----------------------
+      - name: '-------------------------------------------------------------------------------------------------------'
+        if: always()
+        run: ./gvl/test/setup/reset-env-vars.sh
+
+      - name: When a pre-release version is requested from git-version-lite
+        if: always()
+        uses: ./gvl
+        id: prerelease
+        with:
+          calculate-prerelease-version: true
+          branch-name: '${{ env.TEST_BRANCH }}'
+
+      - name: Then the outcome should be success
+        if: always()
+        run: ./gvl/test/assert-values-match.sh --name "step outcome" --expected "success" --actual "${{ steps.prerelease.outcome }}"
+
+      - name: Then the outputs should contain the next ${{ matrix.expected-increment }} version which includes the branch name in NEXT_VERSION
+        if: always()
+        run: |
+
+          # In addition to the next semantic version, NEXT_VERSION will contain the branch name and a timestamp. Test
+          # that it contains the parts we know (version and branch name).  We don't know the timestamp, so ignore that.
+          prefix="v"
+          patch="${{ matrix.next-patch }}"
+          branch="${{ env.TEST_BRANCH }}"
+          substring="$patch-$branch."
+          ./gvl/test/assert-string-contains-substring.sh --name "NEXT_VERSION"           --substring "$prefix$substring" --string "${{ steps.prerelease.outputs.NEXT_VERSION }}"
+          ./gvl/test/assert-string-contains-substring.sh --name "NEXT_VERSION_NO_PREFIX" --substring "$substring"        --string "${{ steps.prerelease.outputs.NEXT_VERSION_NO_PREFIX }}"
+
+          # These vars will NOT contain the branch name or timestamp so test these as exact matches.
+          prior="${{ env.PRIOR_TAG }}"
+          minor="${{ matrix.next-minor }}"
+          major="${{ matrix.next-major }}"
+
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION"      --expected "$prefix$prior" --actual "${{ steps.prerelease.outputs.PRIOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION" --expected "$prefix$minor" --actual "${{ steps.prerelease.outputs.NEXT_MINOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION" --expected "$prefix$major" --actual "${{ steps.prerelease.outputs.NEXT_MAJOR_VERSION }}"
+
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION_NO_PREFIX"      --expected "$prior" --actual "${{ steps.prerelease.outputs.PRIOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION_NO_PREFIX" --expected "$minor" --actual "${{ steps.prerelease.outputs.NEXT_MINOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION_NO_PREFIX" --expected "$major" --actual "${{ steps.prerelease.outputs.NEXT_MAJOR_VERSION_NO_PREFIX }}"
+
+      - name: And the environment variables should contain the next ${{ matrix.expected-increment }} version which includes the branch name in NEXT_VERSION
+        if: always()
+        run: |
+
+          # In addition to the next semantic version, NEXT_VERSION will contain the branch name and a timestamp. Test
+          # that it contains the parts we know (version and branch name).  We don't know the timestamp, so ignore that.
+          prefix="v"
+          patch="${{ matrix.next-patch }}"
+          branch="${{ env.TEST_BRANCH }}"
+          substring="$patch-$branch."
+          ./gvl/test/assert-string-contains-substring.sh --name "NEXT_VERSION"           --substring "$prefix$substring" --string "${{ env.NEXT_VERSION }}"
+          ./gvl/test/assert-string-contains-substring.sh --name "NEXT_VERSION_NO_PREFIX" --substring "$substring"        --string "${{ env.NEXT_VERSION_NO_PREFIX }}"
+
+          # These vars will NOT contain the branch name or timestamp so test these as exact matches.
+          prior="${{ env.PRIOR_TAG }}"
+          minor="${{ matrix.next-minor }}"
+          major="${{ matrix.next-major }}"
+
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION"      --expected "$prefix$prior" --actual "${{ env.PRIOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION" --expected "$prefix$minor" --actual "${{ env.NEXT_MINOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION" --expected "$prefix$major" --actual "${{ env.NEXT_MAJOR_VERSION }}"
+
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION_NO_PREFIX"      --expected "$prior" --actual "${{ env.PRIOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION_NO_PREFIX" --expected "$minor" --actual "${{ env.NEXT_MINOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION_NO_PREFIX" --expected "$major" --actual "${{ env.NEXT_MAJOR_VERSION_NO_PREFIX }}"
+
+      #-----------------------
+      # RELEASE
+      #-----------------------
+      - name: '-------------------------------------------------------------------------------------------------------'
+        if: always()
+        run: ./gvl/test/setup/reset-env-vars.sh
+
+      - name: When a release version is requested from git-version-lite
+        if: always()
+        uses: ./gvl
+        id: release
+        with:
+          calculate-prerelease-version: false
+
+      - name: Then the outcome should be success
+        if: always()
+        run: ./gvl/test/assert-values-match.sh --name "step outcome" --expected "success" --actual "${{ steps.release.outcome }}"
+
+      - name: And the outputs should be the next ${{ matrix.expected-increment }} version
+        if: always()
+        run: |
+          prefix="v"
+          prior="${{ env.PRIOR_TAG }}"
+          patch="${{ matrix.next-patch }}"
+          minor="${{ matrix.next-minor }}"
+          major="${{ matrix.next-major }}"
+
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION"      --expected "$prefix$prior" --actual "${{ steps.release.outputs.PRIOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_VERSION"       --expected "$prefix$patch" --actual "${{ steps.release.outputs.NEXT_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION" --expected "$prefix$minor" --actual "${{ steps.release.outputs.NEXT_MINOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION" --expected "$prefix$major" --actual "${{ steps.release.outputs.NEXT_MAJOR_VERSION }}"
+
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION_NO_PREFIX"      --expected "$prior" --actual "${{ steps.release.outputs.PRIOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_VERSION_NO_PREFIX"       --expected "$patch" --actual "${{ steps.release.outputs.NEXT_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION_NO_PREFIX" --expected "$minor" --actual "${{ steps.release.outputs.NEXT_MINOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION_NO_PREFIX" --expected "$major" --actual "${{ steps.release.outputs.NEXT_MAJOR_VERSION_NO_PREFIX }}"
+
+      - name: And the environment variables should be the next ${{ matrix.expected-increment }} version
+        if: always()
+        run: |
+          prefix="v"
+          prior="${{ env.PRIOR_TAG }}"
+          patch="${{ matrix.next-patch }}"
+          minor="${{ matrix.next-minor }}"
+          major="${{ matrix.next-major }}"
+
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION"      --expected "$prefix$prior" --actual "${{ env.PRIOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_VERSION"       --expected "$prefix$patch" --actual "${{ env.NEXT_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION" --expected "$prefix$minor" --actual "${{ env.NEXT_MINOR_VERSION }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION" --expected "$prefix$major" --actual "${{ env.NEXT_MAJOR_VERSION }}"
+
+          ./gvl/test/assert-values-match.sh --name "PRIOR_VERSION_NO_PREFIX"      --expected "$prior" --actual "${{ env.PRIOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_VERSION_NO_PREFIX"       --expected "$patch" --actual "${{ env.NEXT_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MINOR_VERSION_NO_PREFIX" --expected "$minor" --actual "${{ env.NEXT_MINOR_VERSION_NO_PREFIX }}"
+          ./gvl/test/assert-values-match.sh --name "NEXT_MAJOR_VERSION_NO_PREFIX" --expected "$major" --actual "${{ env.NEXT_MAJOR_VERSION_NO_PREFIX }}"
+
+      - name: '-------------------------------------------------------------------------------------------------------'
+        run: echo ""
