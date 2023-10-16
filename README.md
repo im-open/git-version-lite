@@ -1,3 +1,7 @@
+# Tests
+
+Force tests to run from a fork to see what happens
+
 # git-version-lite
 
 This template can be used to calculate a release or pre-release version.  
