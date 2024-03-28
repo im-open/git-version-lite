@@ -224,7 +224,7 @@ jobs:
       NEXT_MAJOR_VERSION_NO_PREFIX: ''
 
       # Info for the repo we'll be testing git-version-lite against
-      TESTING_REPO: 'im-open/internal-repo-for-testing'
+      TESTING_REPO: 'im-open/internal-repo-for-testing-purple-actions'
       TEST_BRANCH: 'my-test-branch'
 
       # These is based on the fetch-depth not being set. git-version-lite starts from 0.0.0 when calculating the next version
@@ -396,7 +396,7 @@ jobs:
       NEXT_MAJOR_VERSION_NO_PREFIX: ''
 
       # Info for the repo we'll be testing git-version-lite against
-      TESTING_REPO: 'im-open/internal-repo-for-testing'
+      TESTING_REPO: 'im-open/internal-repo-for-testing-purple-actions'
       TEST_BRANCH: 'my-test-branch'
 
       # These NEXT tags are set based on the fetch-depth not being set, so
@@ -598,7 +598,7 @@ jobs:
       NEXT_MAJOR_VERSION_NO_PREFIX: ''
 
       # Info for the repo we'll be testing git-version-lite against
-      TESTING_REPO: 'im-open/internal-repo-for-testing'
+      TESTING_REPO: 'im-open/internal-repo-for-testing-purple-actions'
       TEST_BRANCH: 'my-test-branch'
 
       # All the remaining tags are for TESTING_REPO.  If anything changes tag-wise in that repo, these values need to be updated.
