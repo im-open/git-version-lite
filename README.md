@@ -1,6 +1,6 @@
 # git-version-lite
 
-This template can be used to calculate a release or pre-release version.  
+This template can be used to calculate a release or pre-release version.
 
 ## Index <!-- omit in toc -->
 
@@ -28,7 +28,7 @@ This action relies on git history in order to determine the next version.  This 
 
 ## Release vs Pre-release
 
-You can control whether the action will generate a release or pre-release next version with the `calculate-prerelease-version` flag.  The pre-release versions are intended for use with branches and a branch name is required to generate one.  
+You can control whether the action will generate a release or pre-release next version with the `calculate-prerelease-version` flag.  The pre-release versions are intended for use with branches and a branch name is required to generate one.
 
 - Release version format: `major.minor.patch` (`1.0.0`)
 - Pre-release version format: `major.minor.patch-<cleaned-branch-name>.<formated-date>` (`0.1.0-my-branch.210907164247`)
@@ -92,15 +92,15 @@ Each of the outputs are available as environment variables and as action outputs
 - The `github-token` input was removed
   - This was only needed to create a ref on the repository so it is no longer needed.
 - The `NEXT_VERSION_SHA` output was removed
-  - Workflows can use the value that git-version-lite outputted directly.  
-  - For `pull_request` workflow triggers the value was `github.event.pull_request.head.sha`.  
+  - Workflows can use the value that git-version-lite outputted directly.
+  - For `pull_request` workflow triggers the value was `github.event.pull_request.head.sha`.
   - For all other workflow triggers the value was `github.sha`
 
 ## Usage Examples
 
 ```yml
 on:
-  pull_request: 
+  pull_request:
 
 jobs:
   get-prerelease-version:
@@ -123,7 +123,7 @@ jobs:
           tag-prefix: v                             # Prepend a v to any calculated release/pre-release version
           fallback-to-no-prefix-search: true        # Set to true can be helpful when starting to add tag prefixes
           default-release-type: major               # If no tags are found, default to doing a major increment
-          
+
       - run: |
           echo "The next version is ${{ env.NEXT_VERSION }}"
           echo "The next version without the prefix is ${{ steps.get-version.outputs.NEXT_VERSION_NO_PREFIX }}"
@@ -154,7 +154,7 @@ This repo uses [git-version-lite] in its workflows to examine commit messages to
 
 ### Source Code Changes
 
-The files and directories that are considered source code are listed in the `files-with-code` and `dirs-with-code` arguments in both the [build-and-review-pr] and [increment-version-on-merge] workflows.  
+The files and directories that are considered source code are listed in the `files-with-code` and `dirs-with-code` arguments in both the [build-and-review-pr] and [increment-version-on-merge] workflows.
 
 If a PR contains source code changes, the README.md should be updated with the latest action version and the action should be recompiled.  The [build-and-review-pr] workflow will ensure these steps are performed when they are required.  The workflow will provide instructions for completing these steps if the PR Author does not initially complete them.
 
@@ -175,7 +175,7 @@ If changes are made to the action's [source code], the [usage examples] section 
 
 ### Tests
 
-The [build-and-review-pr] workflow includes tests which are linked to a status check. That status check needs to succeed before a PR is merged to the default branch.  When a PR comes from a branch, the workflow has access to secrets which are required to run the tests successfully.  
+The [build-and-review-pr] workflow includes tests which are linked to a status check. That status check needs to succeed before a PR is merged to the default branch.  When a PR comes from a branch, the workflow has access to secrets which are required to run the tests successfully.
 
 When a PR comes from a fork, the workflow cannot access any secrets, so the tests won't have the necessary permissions to run. When a PR comes from a fork, the changes should be reviewed, then merged into an intermediate branch by repository owners so tests can be run against the PR changes.  Once the tests have passed, changes can be merged into the default branch.
 
