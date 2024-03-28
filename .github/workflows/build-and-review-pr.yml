@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -103,16 +103,16 @@ jobs:
 
       - name: Checkout
         if: env.HAS_CODE_CHANGES == 'true'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # -----------------------------------
       # Check if action has been recompiled
       # -----------------------------------
-      - name: If action has build step - Setup Node 16.x
-        uses: actions/setup-node@v3
+      - name: If action has build step - Setup Node 20.x
+        uses: actions/setup-node@v4
         if: env.HAS_CODE_CHANGES == 'true' && env.HAS_BUILD_STEP == 'true'
         with:
-          node-version: 16.x
+          node-version: 20.x
 
       - name: If action has build step - Build the action
         if: env.HAS_CODE_CHANGES == 'true' && env.HAS_BUILD_STEP == 'true'
@@ -156,7 +156,7 @@ jobs:
       - name: Fail the workflow if there are any outstanding changes
         if: env.HAS_CODE_CHANGES == 'true' &&  (env.NEEDS_BUILD_COMMIT == 'true' || env.NEEDS_README_COMMIT == 'true')
         id: summary
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
 
@@ -252,7 +252,7 @@ jobs:
 
       - name: Setup - Checkout testing repo in the root directory
         if: always()
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: main
           repository: ${{ env.TESTING_REPO }}
@@ -261,7 +261,7 @@ jobs:
 
       - name: Setup - Checkout this action (git-version-lite) into a 'gvl' subdirectory
         if: always()
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ./gvl
 
@@ -422,7 +422,7 @@ jobs:
 
       - name: Setup - Checkout testing repo in the root directory
         if: always()
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: main
           repository: ${{ env.TESTING_REPO }}
@@ -431,7 +431,7 @@ jobs:
 
       - name: Setup - Checkout this action (git-version-lite) into a 'gvl' subdirectory
         if: always()
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ./gvl
 
@@ -705,7 +705,7 @@ jobs:
 
       - name: Setup - Checkout testing repo in the root directory
         if: always()
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: main
           repository: ${{ env.TESTING_REPO }}
@@ -714,7 +714,7 @@ jobs:
 
       - name: Setup - Checkout this action (git-version-lite) into a 'gvl' subdirectory
         if: always()
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ./gvl
 
