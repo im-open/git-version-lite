@@ -149,8 +149,12 @@ jobs:
       - name: When a repo has all of its tags locally
         run: |
           git rev-parse --abbrev-ref HEAD
+          git log --graph --decorate
+
           git pull
           git fetch -t
+          git log --graph --decorate
+
           
 
       - name: And a new version is requested with fallback-to-no-prefix set
