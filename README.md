@@ -110,13 +110,13 @@ jobs:
       NEXT_VERSION: ${{ steps.get-version.outputs.NEXT_VERSION }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0                        # Includes all history for all branches and tags
 
       - id: get-version
         # You may also reference just the major version.
-        uses: im-open/git-version-lite@v3.0.0
+        uses: im-open/git-version-lite@v3.1.0
         with:
           calculate-prerelease-version: true
           branch-name: ${{ github.head_ref }}       # github.head_ref works when the trigger is pull_request
