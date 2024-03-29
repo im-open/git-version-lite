@@ -77,7 +77,7 @@ jobs:
           ref: main
           repository: ${{ env.TESTING_REPO }}
           ssh-key: ${{ secrets.SSH_KEY_TESTING_REPO }}
-          # fetch-depth: 0  # Do not use this because we want to test what happens when fetch-depth is not set
+          fetch-depth: 0  # Do not use this because we want to test what happens when fetch-depth is not set
 
       - name: Setup - Checkout this action (git-version-lite) into a 'gvl' subdirectory
         if: always()
