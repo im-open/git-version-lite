@@ -39,6 +39,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -257,7 +258,7 @@ jobs:
           ref: main
           repository: ${{ env.TESTING_REPO }}
           ssh-key: ${{ secrets.SSH_KEY_TESTING_REPO }}
-          # fetch-depth: 0  # Do not use this because we want to test what happens when fetch-depth is not set
+          fetch-depth: 0
 
       - name: Setup - Checkout this action (git-version-lite) into a 'gvl' subdirectory
         if: always()
@@ -326,10 +327,7 @@ jobs:
       - name: '-------------------------------------------------------------------------------------------------------'
         run: echo ""
 
-      - name: When a repo has all of its tags locally
-        run: git fetch -t
-
-      - name: And a new version is requested with fallback-to-no-prefix set
+      - name: When a new version is requested with fallback-to-no-prefix set
         if: always()
         uses: ./gvl
         id: fallback
