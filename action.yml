@@ -53,5 +53,5 @@ outputs:
     description: 'The previous major.minor.patch version without the tag prefix.'
 
 runs:
-  using: 'node20'
+  using: 'node16'
   main: 'dist/index.js'
