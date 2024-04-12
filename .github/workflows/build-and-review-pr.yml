@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -103,16 +103,16 @@ jobs:
 
       - name: Checkout
         if: env.HAS_CODE_CHANGES == 'true'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # -----------------------------------
       # Check if action has been recompiled
       # -----------------------------------
-      - name: If action has build step - Setup Node 16.x
-        uses: actions/setup-node@v3
+      - name: If action has build step - Setup Node 20.x
+        uses: actions/setup-node@v4
         if: env.HAS_CODE_CHANGES == 'true' && env.HAS_BUILD_STEP == 'true'
         with:
-          node-version: 16.x
+          node-version: 20.x
 
       - name: If action has build step - Build the action
         if: env.HAS_CODE_CHANGES == 'true' && env.HAS_BUILD_STEP == 'true'
@@ -156,7 +156,7 @@ jobs:
       - name: Fail the workflow if there are any outstanding changes
         if: env.HAS_CODE_CHANGES == 'true' &&  (env.NEEDS_BUILD_COMMIT == 'true' || env.NEEDS_README_COMMIT == 'true')
         id: summary
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
 
@@ -224,7 +224,7 @@ jobs:
       NEXT_MAJOR_VERSION_NO_PREFIX: ''
 
       # Info for the repo we'll be testing git-version-lite against
-      TESTING_REPO: 'im-open/internal-repo-for-testing'
+      TESTING_REPO: 'im-open/internal-repo-for-testing-purple-actions'
       TEST_BRANCH: 'my-test-branch'
 
       # These is based on the fetch-depth not being set. git-version-lite starts from 0.0.0 when calculating the next version
@@ -252,16 +252,16 @@ jobs:
 
       - name: Setup - Checkout testing repo in the root directory
         if: always()
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: main
           repository: ${{ env.TESTING_REPO }}
           ssh-key: ${{ secrets.SSH_KEY_TESTING_REPO }}
-          # fetch-depth: 0  # Do not use this because we want to test what happens when fetch-depth is not set
+          fetch-depth: 0
 
       - name: Setup - Checkout this action (git-version-lite) into a 'gvl' subdirectory
         if: always()
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ./gvl
 
@@ -326,10 +326,7 @@ jobs:
       - name: '-------------------------------------------------------------------------------------------------------'
         run: echo ""
 
-      - name: When a repo has all of its tags locally
-        run: git fetch -t
-
-      - name: And a new version is requested with fallback-to-no-prefix set
+      - name: When a new version is requested with fallback-to-no-prefix set
         if: always()
         uses: ./gvl
         id: fallback
@@ -396,7 +393,7 @@ jobs:
       NEXT_MAJOR_VERSION_NO_PREFIX: ''
 
       # Info for the repo we'll be testing git-version-lite against
-      TESTING_REPO: 'im-open/internal-repo-for-testing'
+      TESTING_REPO: 'im-open/internal-repo-for-testing-purple-actions'
       TEST_BRANCH: 'my-test-branch'
 
       # These NEXT tags are set based on the fetch-depth not being set, so
@@ -422,7 +419,7 @@ jobs:
 
       - name: Setup - Checkout testing repo in the root directory
         if: always()
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: main
           repository: ${{ env.TESTING_REPO }}
@@ -431,7 +428,7 @@ jobs:
 
       - name: Setup - Checkout this action (git-version-lite) into a 'gvl' subdirectory
         if: always()
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ./gvl
 
@@ -598,7 +595,7 @@ jobs:
       NEXT_MAJOR_VERSION_NO_PREFIX: ''
 
       # Info for the repo we'll be testing git-version-lite against
-      TESTING_REPO: 'im-open/internal-repo-for-testing'
+      TESTING_REPO: 'im-open/internal-repo-for-testing-purple-actions'
       TEST_BRANCH: 'my-test-branch'
 
       # All the remaining tags are for TESTING_REPO.  If anything changes tag-wise in that repo, these values need to be updated.
@@ -705,7 +702,7 @@ jobs:
 
       - name: Setup - Checkout testing repo in the root directory
         if: always()
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: main
           repository: ${{ env.TESTING_REPO }}
@@ -714,7 +711,7 @@ jobs:
 
       - name: Setup - Checkout this action (git-version-lite) into a 'gvl' subdirectory
         if: always()
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ./gvl
 

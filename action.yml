@@ -26,29 +26,29 @@ inputs:
     description: 'The default release type that should be used when no tags are detected.  Defaults to major.  Accepted values: major|minor|patch'
     required: false
     default: 'major'
-    
+
 outputs:
   NEXT_VERSION:
     description: 'The calculated next version.'
-    
+
   NEXT_VERSION_NO_PREFIX:
     description: 'The calculated next version without the tag prefix.'
-    
+
   NEXT_MINOR_VERSION:
     description: 'The next major.minor version.'
-    
+
   NEXT_MINOR_VERSION_NO_PREFIX:
     description: 'The next major.minor version without the tag prefix.'
-    
+
   NEXT_MAJOR_VERSION:
     description: 'The next major version.'
-    
+
   NEXT_MAJOR_VERSION_NO_PREFIX:
     description: 'The next major version without the tag prefix.'
-    
+
   PRIOR_VERSION:
     description: 'The previous major.minor.patch version.'
-    
+
   PRIOR_VERSION_NO_PREFIX:
     description: 'The previous major.minor.patch version without the tag prefix.'
 
