@@ -61,11 +61,13 @@ async function run() {
     console.log('version to build:');
     console.log(versionToBuild);
 
-    const { nextPatch, nextMinor, nextMajor, priorVersion } = versionToBuild;
+    const { nextPatch, nextMinor, nextMajor, priorVersion, nextPatchReleaseVersion } =
+      versionToBuild;
     setTheOutputs('PRIOR_VERSION', priorVersion, tagPrefix);
     setTheOutputs('NEXT_VERSION', nextPatch, tagPrefix);
     setTheOutputs('NEXT_MINOR_VERSION', nextMinor, tagPrefix);
     setTheOutputs('NEXT_MAJOR_VERSION', nextMajor, tagPrefix);
+    setTheOutputs('NEXT_RELEASE_VERSION', nextPatchReleaseVersion, tagPrefix);
   } catch (error) {
     const versionTxt = calculatePrereleaseVersion ? 'pre-release' : 'release';
     core.setFailed(

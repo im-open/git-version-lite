@@ -52,6 +52,12 @@ outputs:
   PRIOR_VERSION_NO_PREFIX:
     description: 'The previous major.minor.patch version without the tag prefix.'
 
+  NEXT_RELEASE_VERSION:
+    description: 'The calculated next release version. This version will not contain the branch when calculating a pre-release version.'
+
+  NEXT_RELEASE_VERSION_NO_PREFIX:
+    description: 'The calculated next release version without the tag prefix. This version will not contain the branch when calculating a pre-release version.'
+
 runs:
   using: 'node20'
   main: 'dist/index.js'

@@ -5182,7 +5182,8 @@ The base commit was found.  The prior release version is: ${priorReleaseVersion}
         priorVersion: priorSemver.toString(),
         nextPatch: nextSemver.toString(),
         nextMinor: `${nextSemver.major}.${nextSemver.minor}`,
-        nextMajor: `${nextSemver.major}`
+        nextMajor: `${nextSemver.major}`,
+        nextPatchReleaseVersion: nextSemver.toString()
       };
     }
     function nextPrereleaseVersion2(
@@ -5219,11 +5220,13 @@ The base commit was found.  The prior release version is: ${priorReleaseVersion}
       core2.info(`Cleaned Branch Name: '${label}'`);
       const priorSemver = new SemVer(priorReleaseVersion);
       const nextSemver = new SemVer(prereleaseVersion);
+      const nextReleaseSemver = new SemVer(nextReleaseVersion3);
       return {
         priorVersion: priorSemver.toString(),
         nextPatch: nextSemver.toString(),
         nextMinor: `${nextSemver.major}.${nextSemver.minor}`,
-        nextMajor: `${nextSemver.major}`
+        nextMajor: `${nextSemver.major}`,
+        nextPatchReleaseVersion: nextReleaseSemver.toString()
       };
     }
     module2.exports = {
@@ -5281,11 +5284,13 @@ async function run() {
     }
     console.log('version to build:');
     console.log(versionToBuild);
-    const { nextPatch, nextMinor, nextMajor, priorVersion } = versionToBuild;
+    const { nextPatch, nextMinor, nextMajor, priorVersion, nextPatchReleaseVersion } =
+      versionToBuild;
     setTheOutputs('PRIOR_VERSION', priorVersion, tagPrefix);
     setTheOutputs('NEXT_VERSION', nextPatch, tagPrefix);
     setTheOutputs('NEXT_MINOR_VERSION', nextMinor, tagPrefix);
     setTheOutputs('NEXT_MAJOR_VERSION', nextMajor, tagPrefix);
+    setTheOutputs('NEXT_RELEASE_VERSION', nextPatchReleaseVersion, tagPrefix);
   } catch (error) {
     const versionTxt = calculatePrereleaseVersion ? 'pre-release' : 'release';
     core.setFailed(
