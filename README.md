@@ -42,13 +42,13 @@ For pre-release versions the commits on the current branch are used, and for rel
 
 The action will increment the major version if it identifies any of the following patterns in the commit body or notes:
 | Pattern                            | Examples                           |
-|------------------------------------|------------------------------------|
+| ---------------------------------- | ---------------------------------- |
 | `/\+semver:\s*(breaking\|major)/i` | +semver:breaking, +semver:major    |
 | `/BREAKING CHANGES?:?/`            | BREAKING CHANGE:, BREAKING CHANGES |
 
 The action will increment the minor version if it identifies any of the following patterns in the commit body or notes:
 | Pattern                           | Examples                                          |
-|-----------------------------------|---------------------------------------------------|
+| --------------------------------- | ------------------------------------------------- |
 | `/\+semver:\s*(feature\|minor)/i` | +semver:feature, +semver:minor                    |
 | `/feat\([^)]*\):\s/`              | feat(area): something, feat(): something          |
 | `/feature\([^)]*\):\s/`           | feature(area): something, feature(): something    |
@@ -60,7 +60,7 @@ If none of the previous patterns match, the action will increment the patch vers
 ## Inputs
 
 | Parameter                      | Is Required                                            | Default | Description                                                                                                                                                                                                                                                                                                |
-|--------------------------------|--------------------------------------------------------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------------------ | ------------------------------------------------------ | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `tag-prefix`                   | false                                                  | `v`     | By default the action strips the prefixes off, but any value provided here will be prepended to the next calculated version.<br/><br/>GitHub indicates it is common practice to prefix your version names with the letter `v` (which is the default).  If you do not want a prefix use `tag-prefix: none`. |
 | `fallback-to-no-prefix-search` | false                                                  | `true`  | Flag indicating whether it should fallback to a prefix-less search if no tags are found with the current prefix.  Helpful when starting to use prefixes with tags.  Accepted values: true\|false.                                                                                                          |
 | `calculate-prerelease-version` | false                                                  | `false` | Flag indicating whether to calculate a pre-release version rather than a release version.  Accepts: `true\|false`.                                                                                                                                                                                         |
@@ -71,17 +71,19 @@ If none of the previous patterns match, the action will increment the patch vers
 
 Each of the outputs are available as environment variables and as action outputs.
 
-| Output                         | Description                                                     |
-|--------------------------------|-----------------------------------------------------------------|
-| `NEXT_VERSION`                 | The next `major.minor.patch` version                            |
-| `NEXT_VERSION_NO_PREFIX`       | The next `major.minor.patch` version without the tag prefix     |
-| `NEXT_MINOR_VERSION`           | The next `major.minor` version                                  |
-| `NEXT_MINOR_VERSION_NO_PREFIX` | The next `major.minor` version without the tag prefix           |
-| `NEXT_MAJOR_VERSION`           | The next `major` version                                        |
-| `NEXT_MAJOR_VERSION_NO_PREFIX` | The next `major` version without the tag prefix                 |
-| `NEXT_VERSION_SHA`             | The SHA of the next version as an environment variable          |
-| `PRIOR_VERSION`                | The previous `major.minor.patch` version                        |
-| `PRIOR_VERSION_NO_PREFIX`      | The previous `major.minor.patch` version without the tag prefix |
+| Output                          | Description                                                                                                                                   |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_VERSION`                  | The next `major.minor.patch` version                                                                                                          |
+| `NEXT_VERSION_NO_PREFIX`        | The next `major.minor.patch` version without the tag prefix                                                                                   |
+| `NEXT_MINOR_VERSION`            | The next `major.minor` version                                                                                                                |
+| `NEXT_MINOR_VERSION_NO_PREFIX`  | The next `major.minor` version without the tag prefix                                                                                         |
+| `NEXT_MAJOR_VERSION`            | The next `major` version                                                                                                                      |
+| `NEXT_MAJOR_VERSION_NO_PREFIX`  | The next `major` version without the tag prefix                                                                                               |
+| `NEXT_VERSION_SHA`              | The SHA of the next version as an environment variable                                                                                        |
+| `PRIOR_VERSION`                 | The previous `major.minor.patch` version                                                                                                      |
+| `PRIOR_VERSION_NO_PREFIX`       | The previous `major.minor.patch` version without the tag prefix                                                                               |
+| `NEXT_RELEASE_VERSION`          | The next `major.minor.patch` release version. This version will not contain the branch when calculating a pre-release version.                |
+| `NEXT_RELEASE_VERSON_NO_PREFIX` | The next `major.minor.patch` version without the tag prefix. This version will not contain the branch when calculating a pre-release version. |
 
 ## Breaking Changes
 
@@ -116,7 +118,7 @@ jobs:
 
       - id: get-version
         # You may also reference just the major version.
-        uses: im-open/git-version-lite@v3.1.0
+        uses: im-open/git-version-lite@v3.2.0
         with:
           calculate-prerelease-version: true
           branch-name: ${{ github.head_ref }}       # github.head_ref works when the trigger is pull_request
@@ -145,7 +147,7 @@ When creating PRs, please review the following guidelines:
 This repo uses [git-version-lite] in its workflows to examine commit messages to determine whether to perform a major, minor or patch increment on merge if [source code] changes have been made.  The following table provides the fragment that should be included in a commit message to active different increment strategies.
 
 | Increment Type | Commit Message Fragment                     |
-|----------------|---------------------------------------------|
+| -------------- | ------------------------------------------- |
 | major          | +semver:breaking                            |
 | major          | +semver:major                               |
 | minor          | +semver:feature                             |

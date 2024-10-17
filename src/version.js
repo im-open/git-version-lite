@@ -163,7 +163,8 @@ function nextReleaseVersion(defaultReleaseType, tagPrefix, fallbackToNoPrefixSea
     priorVersion: priorSemver.toString(),
     nextPatch: nextSemver.toString(),
     nextMinor: `${nextSemver.major}.${nextSemver.minor}`,
-    nextMajor: `${nextSemver.major}`
+    nextMajor: `${nextSemver.major}`,
+    nextPatchReleaseVersion: nextSemver.toString()
   };
 }
 
@@ -205,11 +206,13 @@ function nextPrereleaseVersion(label, defaultReleaseType, tagPrefix, fallbackToN
 
   const priorSemver = new SemVer(priorReleaseVersion);
   const nextSemver = new SemVer(prereleaseVersion);
+  const nextReleaseSemver = new SemVer(nextReleaseVersion);
   return {
     priorVersion: priorSemver.toString(),
     nextPatch: nextSemver.toString(),
     nextMinor: `${nextSemver.major}.${nextSemver.minor}`,
-    nextMajor: `${nextSemver.major}`
+    nextMajor: `${nextSemver.major}`,
+    nextPatchReleaseVersion: nextReleaseSemver.toString()
   };
 }
 
