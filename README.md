@@ -118,7 +118,7 @@ jobs:
 
       - id: get-version
         # You may also reference just the major version.
-        uses: im-open/git-version-lite@v3.2.0
+        uses: im-open/git-version-lite@v3.2.1
         with:
           calculate-prerelease-version: true
           branch-name: ${{ github.head_ref }}       # github.head_ref works when the trigger is pull_request
