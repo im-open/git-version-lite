@@ -1,7 +1,47 @@
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __esm = (fn, res) =>
+  function __init() {
+    return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])((fn = 0))), res;
+  };
 var __commonJS = (cb, mod) =>
   function __require() {
-    return mod || (0, cb[Object.keys(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+    return (
+      mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports
+    );
   };
+var __export = (target, all) => {
+  for (var name in all) __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if ((from && typeof from === 'object') || typeof from === 'function') {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, {
+          get: () => from[key],
+          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+        });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (
+  (target = mod != null ? __create(__getProtoOf(mod)) : {}),
+  __copyProps(
+    // If the importer is in node compatibility mode or this is not an ESM
+    // file that has been converted to a CommonJS file using a Babel-
+    // compatible transform (i.e. "__esModule" has not been set), then set
+    // "default" to the CommonJS "module.exports" for node compatibility.
+    isNodeMode || !mod || !mod.__esModule
+      ? __defProp(target, 'default', { value: mod, enumerable: true })
+      : target,
+    mod
+  )
+);
+var __toCommonJS = mod => __copyProps(__defProp({}, '__esModule', { value: true }), mod);
 
 // node_modules/@actions/core/lib/utils.js
 var require_utils = __commonJS({
@@ -142,522 +182,364 @@ var require_command = __commonJS({
   }
 });
 
-// node_modules/uuid/dist/rng.js
-var require_rng = __commonJS({
-  'node_modules/uuid/dist/rng.js'(exports2) {
-    'use strict';
-    Object.defineProperty(exports2, '__esModule', {
-      value: true
-    });
-    exports2.default = rng;
-    var _crypto = _interopRequireDefault(require('crypto'));
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    var rnds8Pool = new Uint8Array(256);
-    var poolPtr = rnds8Pool.length;
-    function rng() {
-      if (poolPtr > rnds8Pool.length - 16) {
-        _crypto.default.randomFillSync(rnds8Pool);
-        poolPtr = 0;
-      }
-      return rnds8Pool.slice(poolPtr, (poolPtr += 16));
-    }
+// node_modules/uuid/dist/esm-node/rng.js
+function rng() {
+  if (poolPtr > rnds8Pool.length - 16) {
+    import_crypto.default.randomFillSync(rnds8Pool);
+    poolPtr = 0;
+  }
+  return rnds8Pool.slice(poolPtr, (poolPtr += 16));
+}
+var import_crypto, rnds8Pool, poolPtr;
+var init_rng = __esm({
+  'node_modules/uuid/dist/esm-node/rng.js'() {
+    import_crypto = __toESM(require('crypto'));
+    rnds8Pool = new Uint8Array(256);
+    poolPtr = rnds8Pool.length;
   }
 });
 
-// node_modules/uuid/dist/regex.js
-var require_regex = __commonJS({
-  'node_modules/uuid/dist/regex.js'(exports2) {
-    'use strict';
-    Object.defineProperty(exports2, '__esModule', {
-      value: true
-    });
-    exports2.default = void 0;
-    var _default =
+// node_modules/uuid/dist/esm-node/regex.js
+var regex_default;
+var init_regex = __esm({
+  'node_modules/uuid/dist/esm-node/regex.js'() {
+    regex_default =
       /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i;
-    exports2.default = _default;
   }
 });
 
-// node_modules/uuid/dist/validate.js
-var require_validate = __commonJS({
-  'node_modules/uuid/dist/validate.js'(exports2) {
-    'use strict';
-    Object.defineProperty(exports2, '__esModule', {
-      value: true
-    });
-    exports2.default = void 0;
-    var _regex = _interopRequireDefault(require_regex());
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    function validate(uuid) {
-      return typeof uuid === 'string' && _regex.default.test(uuid);
-    }
-    var _default = validate;
-    exports2.default = _default;
+// node_modules/uuid/dist/esm-node/validate.js
+function validate(uuid) {
+  return typeof uuid === 'string' && regex_default.test(uuid);
+}
+var validate_default;
+var init_validate = __esm({
+  'node_modules/uuid/dist/esm-node/validate.js'() {
+    init_regex();
+    validate_default = validate;
   }
 });
 
-// node_modules/uuid/dist/stringify.js
-var require_stringify = __commonJS({
-  'node_modules/uuid/dist/stringify.js'(exports2) {
-    'use strict';
-    Object.defineProperty(exports2, '__esModule', {
-      value: true
-    });
-    exports2.default = void 0;
-    var _validate = _interopRequireDefault(require_validate());
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    var byteToHex = [];
+// node_modules/uuid/dist/esm-node/stringify.js
+function stringify(arr, offset = 0) {
+  const uuid = (
+    byteToHex[arr[offset + 0]] +
+    byteToHex[arr[offset + 1]] +
+    byteToHex[arr[offset + 2]] +
+    byteToHex[arr[offset + 3]] +
+    '-' +
+    byteToHex[arr[offset + 4]] +
+    byteToHex[arr[offset + 5]] +
+    '-' +
+    byteToHex[arr[offset + 6]] +
+    byteToHex[arr[offset + 7]] +
+    '-' +
+    byteToHex[arr[offset + 8]] +
+    byteToHex[arr[offset + 9]] +
+    '-' +
+    byteToHex[arr[offset + 10]] +
+    byteToHex[arr[offset + 11]] +
+    byteToHex[arr[offset + 12]] +
+    byteToHex[arr[offset + 13]] +
+    byteToHex[arr[offset + 14]] +
+    byteToHex[arr[offset + 15]]
+  ).toLowerCase();
+  if (!validate_default(uuid)) {
+    throw TypeError('Stringified UUID is invalid');
+  }
+  return uuid;
+}
+var byteToHex, stringify_default;
+var init_stringify = __esm({
+  'node_modules/uuid/dist/esm-node/stringify.js'() {
+    init_validate();
+    byteToHex = [];
     for (let i = 0; i < 256; ++i) {
       byteToHex.push((i + 256).toString(16).substr(1));
     }
-    function stringify(arr, offset = 0) {
-      const uuid = (
-        byteToHex[arr[offset + 0]] +
-        byteToHex[arr[offset + 1]] +
-        byteToHex[arr[offset + 2]] +
-        byteToHex[arr[offset + 3]] +
-        '-' +
-        byteToHex[arr[offset + 4]] +
-        byteToHex[arr[offset + 5]] +
-        '-' +
-        byteToHex[arr[offset + 6]] +
-        byteToHex[arr[offset + 7]] +
-        '-' +
-        byteToHex[arr[offset + 8]] +
-        byteToHex[arr[offset + 9]] +
-        '-' +
-        byteToHex[arr[offset + 10]] +
-        byteToHex[arr[offset + 11]] +
-        byteToHex[arr[offset + 12]] +
-        byteToHex[arr[offset + 13]] +
-        byteToHex[arr[offset + 14]] +
-        byteToHex[arr[offset + 15]]
-      ).toLowerCase();
-      if (!(0, _validate.default)(uuid)) {
-        throw TypeError('Stringified UUID is invalid');
-      }
-      return uuid;
-    }
-    var _default = stringify;
-    exports2.default = _default;
+    stringify_default = stringify;
   }
 });
 
-// node_modules/uuid/dist/v1.js
-var require_v1 = __commonJS({
-  'node_modules/uuid/dist/v1.js'(exports2) {
-    'use strict';
-    Object.defineProperty(exports2, '__esModule', {
-      value: true
-    });
-    exports2.default = void 0;
-    var _rng = _interopRequireDefault(require_rng());
-    var _stringify = _interopRequireDefault(require_stringify());
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
+// node_modules/uuid/dist/esm-node/v1.js
+function v1(options, buf, offset) {
+  let i = (buf && offset) || 0;
+  const b = buf || new Array(16);
+  options = options || {};
+  let node = options.node || _nodeId;
+  let clockseq = options.clockseq !== void 0 ? options.clockseq : _clockseq;
+  if (node == null || clockseq == null) {
+    const seedBytes = options.random || (options.rng || rng)();
+    if (node == null) {
+      node = _nodeId = [
+        seedBytes[0] | 1,
+        seedBytes[1],
+        seedBytes[2],
+        seedBytes[3],
+        seedBytes[4],
+        seedBytes[5]
+      ];
     }
-    var _nodeId;
-    var _clockseq;
-    var _lastMSecs = 0;
-    var _lastNSecs = 0;
-    function v1(options, buf, offset) {
-      let i = (buf && offset) || 0;
-      const b = buf || new Array(16);
-      options = options || {};
-      let node = options.node || _nodeId;
-      let clockseq = options.clockseq !== void 0 ? options.clockseq : _clockseq;
-      if (node == null || clockseq == null) {
-        const seedBytes = options.random || (options.rng || _rng.default)();
-        if (node == null) {
-          node = _nodeId = [
-            seedBytes[0] | 1,
-            seedBytes[1],
-            seedBytes[2],
-            seedBytes[3],
-            seedBytes[4],
-            seedBytes[5]
-          ];
-        }
-        if (clockseq == null) {
-          clockseq = _clockseq = ((seedBytes[6] << 8) | seedBytes[7]) & 16383;
-        }
-      }
-      let msecs = options.msecs !== void 0 ? options.msecs : Date.now();
-      let nsecs = options.nsecs !== void 0 ? options.nsecs : _lastNSecs + 1;
-      const dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 1e4;
-      if (dt < 0 && options.clockseq === void 0) {
-        clockseq = (clockseq + 1) & 16383;
-      }
-      if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === void 0) {
-        nsecs = 0;
-      }
-      if (nsecs >= 1e4) {
-        throw new Error("uuid.v1(): Can't create more than 10M uuids/sec");
-      }
-      _lastMSecs = msecs;
-      _lastNSecs = nsecs;
-      _clockseq = clockseq;
-      msecs += 122192928e5;
-      const tl = ((msecs & 268435455) * 1e4 + nsecs) % 4294967296;
-      b[i++] = (tl >>> 24) & 255;
-      b[i++] = (tl >>> 16) & 255;
-      b[i++] = (tl >>> 8) & 255;
-      b[i++] = tl & 255;
-      const tmh = ((msecs / 4294967296) * 1e4) & 268435455;
-      b[i++] = (tmh >>> 8) & 255;
-      b[i++] = tmh & 255;
-      b[i++] = ((tmh >>> 24) & 15) | 16;
-      b[i++] = (tmh >>> 16) & 255;
-      b[i++] = (clockseq >>> 8) | 128;
-      b[i++] = clockseq & 255;
-      for (let n = 0; n < 6; ++n) {
-        b[i + n] = node[n];
-      }
-      return buf || (0, _stringify.default)(b);
+    if (clockseq == null) {
+      clockseq = _clockseq = ((seedBytes[6] << 8) | seedBytes[7]) & 16383;
     }
-    var _default = v1;
-    exports2.default = _default;
+  }
+  let msecs = options.msecs !== void 0 ? options.msecs : Date.now();
+  let nsecs = options.nsecs !== void 0 ? options.nsecs : _lastNSecs + 1;
+  const dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 1e4;
+  if (dt < 0 && options.clockseq === void 0) {
+    clockseq = (clockseq + 1) & 16383;
+  }
+  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === void 0) {
+    nsecs = 0;
+  }
+  if (nsecs >= 1e4) {
+    throw new Error("uuid.v1(): Can't create more than 10M uuids/sec");
+  }
+  _lastMSecs = msecs;
+  _lastNSecs = nsecs;
+  _clockseq = clockseq;
+  msecs += 122192928e5;
+  const tl = ((msecs & 268435455) * 1e4 + nsecs) % 4294967296;
+  b[i++] = (tl >>> 24) & 255;
+  b[i++] = (tl >>> 16) & 255;
+  b[i++] = (tl >>> 8) & 255;
+  b[i++] = tl & 255;
+  const tmh = ((msecs / 4294967296) * 1e4) & 268435455;
+  b[i++] = (tmh >>> 8) & 255;
+  b[i++] = tmh & 255;
+  b[i++] = ((tmh >>> 24) & 15) | 16;
+  b[i++] = (tmh >>> 16) & 255;
+  b[i++] = (clockseq >>> 8) | 128;
+  b[i++] = clockseq & 255;
+  for (let n = 0; n < 6; ++n) {
+    b[i + n] = node[n];
+  }
+  return buf || stringify_default(b);
+}
+var _nodeId, _clockseq, _lastMSecs, _lastNSecs, v1_default;
+var init_v1 = __esm({
+  'node_modules/uuid/dist/esm-node/v1.js'() {
+    init_rng();
+    init_stringify();
+    _lastMSecs = 0;
+    _lastNSecs = 0;
+    v1_default = v1;
   }
 });
 
-// node_modules/uuid/dist/parse.js
-var require_parse = __commonJS({
-  'node_modules/uuid/dist/parse.js'(exports2) {
-    'use strict';
-    Object.defineProperty(exports2, '__esModule', {
-      value: true
-    });
-    exports2.default = void 0;
-    var _validate = _interopRequireDefault(require_validate());
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    function parse(uuid) {
-      if (!(0, _validate.default)(uuid)) {
-        throw TypeError('Invalid UUID');
-      }
-      let v;
-      const arr = new Uint8Array(16);
-      arr[0] = (v = parseInt(uuid.slice(0, 8), 16)) >>> 24;
-      arr[1] = (v >>> 16) & 255;
-      arr[2] = (v >>> 8) & 255;
-      arr[3] = v & 255;
-      arr[4] = (v = parseInt(uuid.slice(9, 13), 16)) >>> 8;
-      arr[5] = v & 255;
-      arr[6] = (v = parseInt(uuid.slice(14, 18), 16)) >>> 8;
-      arr[7] = v & 255;
-      arr[8] = (v = parseInt(uuid.slice(19, 23), 16)) >>> 8;
-      arr[9] = v & 255;
-      arr[10] = ((v = parseInt(uuid.slice(24, 36), 16)) / 1099511627776) & 255;
-      arr[11] = (v / 4294967296) & 255;
-      arr[12] = (v >>> 24) & 255;
-      arr[13] = (v >>> 16) & 255;
-      arr[14] = (v >>> 8) & 255;
-      arr[15] = v & 255;
-      return arr;
-    }
-    var _default = parse;
-    exports2.default = _default;
+// node_modules/uuid/dist/esm-node/parse.js
+function parse(uuid) {
+  if (!validate_default(uuid)) {
+    throw TypeError('Invalid UUID');
+  }
+  let v;
+  const arr = new Uint8Array(16);
+  arr[0] = (v = parseInt(uuid.slice(0, 8), 16)) >>> 24;
+  arr[1] = (v >>> 16) & 255;
+  arr[2] = (v >>> 8) & 255;
+  arr[3] = v & 255;
+  arr[4] = (v = parseInt(uuid.slice(9, 13), 16)) >>> 8;
+  arr[5] = v & 255;
+  arr[6] = (v = parseInt(uuid.slice(14, 18), 16)) >>> 8;
+  arr[7] = v & 255;
+  arr[8] = (v = parseInt(uuid.slice(19, 23), 16)) >>> 8;
+  arr[9] = v & 255;
+  arr[10] = ((v = parseInt(uuid.slice(24, 36), 16)) / 1099511627776) & 255;
+  arr[11] = (v / 4294967296) & 255;
+  arr[12] = (v >>> 24) & 255;
+  arr[13] = (v >>> 16) & 255;
+  arr[14] = (v >>> 8) & 255;
+  arr[15] = v & 255;
+  return arr;
+}
+var parse_default;
+var init_parse = __esm({
+  'node_modules/uuid/dist/esm-node/parse.js'() {
+    init_validate();
+    parse_default = parse;
   }
 });
 
-// node_modules/uuid/dist/v35.js
-var require_v35 = __commonJS({
-  'node_modules/uuid/dist/v35.js'(exports2) {
-    'use strict';
-    Object.defineProperty(exports2, '__esModule', {
-      value: true
-    });
-    exports2.default = _default;
-    exports2.URL = exports2.DNS = void 0;
-    var _stringify = _interopRequireDefault(require_stringify());
-    var _parse = _interopRequireDefault(require_parse());
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
+// node_modules/uuid/dist/esm-node/v35.js
+function stringToBytes(str) {
+  str = unescape(encodeURIComponent(str));
+  const bytes = [];
+  for (let i = 0; i < str.length; ++i) {
+    bytes.push(str.charCodeAt(i));
+  }
+  return bytes;
+}
+function v35_default(name, version2, hashfunc) {
+  function generateUUID(value, namespace, buf, offset) {
+    if (typeof value === 'string') {
+      value = stringToBytes(value);
     }
-    function stringToBytes(str) {
-      str = unescape(encodeURIComponent(str));
-      const bytes = [];
-      for (let i = 0; i < str.length; ++i) {
-        bytes.push(str.charCodeAt(i));
+    if (typeof namespace === 'string') {
+      namespace = parse_default(namespace);
+    }
+    if (namespace.length !== 16) {
+      throw TypeError('Namespace must be array-like (16 iterable integer values, 0-255)');
+    }
+    let bytes = new Uint8Array(16 + value.length);
+    bytes.set(namespace);
+    bytes.set(value, namespace.length);
+    bytes = hashfunc(bytes);
+    bytes[6] = (bytes[6] & 15) | version2;
+    bytes[8] = (bytes[8] & 63) | 128;
+    if (buf) {
+      offset = offset || 0;
+      for (let i = 0; i < 16; ++i) {
+        buf[offset + i] = bytes[i];
       }
-      return bytes;
+      return buf;
     }
-    var DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
-    exports2.DNS = DNS;
-    var URL2 = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
-    exports2.URL = URL2;
-    function _default(name, version, hashfunc) {
-      function generateUUID(value, namespace, buf, offset) {
-        if (typeof value === 'string') {
-          value = stringToBytes(value);
-        }
-        if (typeof namespace === 'string') {
-          namespace = (0, _parse.default)(namespace);
-        }
-        if (namespace.length !== 16) {
-          throw TypeError('Namespace must be array-like (16 iterable integer values, 0-255)');
-        }
-        let bytes = new Uint8Array(16 + value.length);
-        bytes.set(namespace);
-        bytes.set(value, namespace.length);
-        bytes = hashfunc(bytes);
-        bytes[6] = (bytes[6] & 15) | version;
-        bytes[8] = (bytes[8] & 63) | 128;
-        if (buf) {
-          offset = offset || 0;
-          for (let i = 0; i < 16; ++i) {
-            buf[offset + i] = bytes[i];
-          }
-          return buf;
-        }
-        return (0, _stringify.default)(bytes);
-      }
-      try {
-        generateUUID.name = name;
-      } catch (err) {}
-      generateUUID.DNS = DNS;
-      generateUUID.URL = URL2;
-      return generateUUID;
-    }
+    return stringify_default(bytes);
+  }
+  try {
+    generateUUID.name = name;
+  } catch (err) {}
+  generateUUID.DNS = DNS;
+  generateUUID.URL = URL2;
+  return generateUUID;
+}
+var DNS, URL2;
+var init_v35 = __esm({
+  'node_modules/uuid/dist/esm-node/v35.js'() {
+    init_stringify();
+    init_parse();
+    DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
+    URL2 = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
   }
 });
 
-// node_modules/uuid/dist/md5.js
-var require_md5 = __commonJS({
-  'node_modules/uuid/dist/md5.js'(exports2) {
-    'use strict';
-    Object.defineProperty(exports2, '__esModule', {
-      value: true
-    });
-    exports2.default = void 0;
-    var _crypto = _interopRequireDefault(require('crypto'));
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    function md5(bytes) {
-      if (Array.isArray(bytes)) {
-        bytes = Buffer.from(bytes);
-      } else if (typeof bytes === 'string') {
-        bytes = Buffer.from(bytes, 'utf8');
-      }
-      return _crypto.default.createHash('md5').update(bytes).digest();
-    }
-    var _default = md5;
-    exports2.default = _default;
+// node_modules/uuid/dist/esm-node/md5.js
+function md5(bytes) {
+  if (Array.isArray(bytes)) {
+    bytes = Buffer.from(bytes);
+  } else if (typeof bytes === 'string') {
+    bytes = Buffer.from(bytes, 'utf8');
+  }
+  return import_crypto2.default.createHash('md5').update(bytes).digest();
+}
+var import_crypto2, md5_default;
+var init_md5 = __esm({
+  'node_modules/uuid/dist/esm-node/md5.js'() {
+    import_crypto2 = __toESM(require('crypto'));
+    md5_default = md5;
   }
 });
 
-// node_modules/uuid/dist/v3.js
-var require_v3 = __commonJS({
-  'node_modules/uuid/dist/v3.js'(exports2) {
-    'use strict';
-    Object.defineProperty(exports2, '__esModule', {
-      value: true
-    });
-    exports2.default = void 0;
-    var _v = _interopRequireDefault(require_v35());
-    var _md = _interopRequireDefault(require_md5());
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    var v3 = (0, _v.default)('v3', 48, _md.default);
-    var _default = v3;
-    exports2.default = _default;
+// node_modules/uuid/dist/esm-node/v3.js
+var v3, v3_default;
+var init_v3 = __esm({
+  'node_modules/uuid/dist/esm-node/v3.js'() {
+    init_v35();
+    init_md5();
+    v3 = v35_default('v3', 48, md5_default);
+    v3_default = v3;
   }
 });
 
-// node_modules/uuid/dist/v4.js
-var require_v4 = __commonJS({
-  'node_modules/uuid/dist/v4.js'(exports2) {
-    'use strict';
-    Object.defineProperty(exports2, '__esModule', {
-      value: true
-    });
-    exports2.default = void 0;
-    var _rng = _interopRequireDefault(require_rng());
-    var _stringify = _interopRequireDefault(require_stringify());
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
+// node_modules/uuid/dist/esm-node/v4.js
+function v4(options, buf, offset) {
+  options = options || {};
+  const rnds = options.random || (options.rng || rng)();
+  rnds[6] = (rnds[6] & 15) | 64;
+  rnds[8] = (rnds[8] & 63) | 128;
+  if (buf) {
+    offset = offset || 0;
+    for (let i = 0; i < 16; ++i) {
+      buf[offset + i] = rnds[i];
     }
-    function v4(options, buf, offset) {
-      options = options || {};
-      const rnds = options.random || (options.rng || _rng.default)();
-      rnds[6] = (rnds[6] & 15) | 64;
-      rnds[8] = (rnds[8] & 63) | 128;
-      if (buf) {
-        offset = offset || 0;
-        for (let i = 0; i < 16; ++i) {
-          buf[offset + i] = rnds[i];
-        }
-        return buf;
-      }
-      return (0, _stringify.default)(rnds);
-    }
-    var _default = v4;
-    exports2.default = _default;
+    return buf;
+  }
+  return stringify_default(rnds);
+}
+var v4_default;
+var init_v4 = __esm({
+  'node_modules/uuid/dist/esm-node/v4.js'() {
+    init_rng();
+    init_stringify();
+    v4_default = v4;
   }
 });
 
-// node_modules/uuid/dist/sha1.js
-var require_sha1 = __commonJS({
-  'node_modules/uuid/dist/sha1.js'(exports2) {
-    'use strict';
-    Object.defineProperty(exports2, '__esModule', {
-      value: true
-    });
-    exports2.default = void 0;
-    var _crypto = _interopRequireDefault(require('crypto'));
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    function sha1(bytes) {
-      if (Array.isArray(bytes)) {
-        bytes = Buffer.from(bytes);
-      } else if (typeof bytes === 'string') {
-        bytes = Buffer.from(bytes, 'utf8');
-      }
-      return _crypto.default.createHash('sha1').update(bytes).digest();
-    }
-    var _default = sha1;
-    exports2.default = _default;
+// node_modules/uuid/dist/esm-node/sha1.js
+function sha1(bytes) {
+  if (Array.isArray(bytes)) {
+    bytes = Buffer.from(bytes);
+  } else if (typeof bytes === 'string') {
+    bytes = Buffer.from(bytes, 'utf8');
+  }
+  return import_crypto3.default.createHash('sha1').update(bytes).digest();
+}
+var import_crypto3, sha1_default;
+var init_sha1 = __esm({
+  'node_modules/uuid/dist/esm-node/sha1.js'() {
+    import_crypto3 = __toESM(require('crypto'));
+    sha1_default = sha1;
   }
 });
 
-// node_modules/uuid/dist/v5.js
-var require_v5 = __commonJS({
-  'node_modules/uuid/dist/v5.js'(exports2) {
-    'use strict';
-    Object.defineProperty(exports2, '__esModule', {
-      value: true
-    });
-    exports2.default = void 0;
-    var _v = _interopRequireDefault(require_v35());
-    var _sha = _interopRequireDefault(require_sha1());
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    var v5 = (0, _v.default)('v5', 80, _sha.default);
-    var _default = v5;
-    exports2.default = _default;
+// node_modules/uuid/dist/esm-node/v5.js
+var v5, v5_default;
+var init_v5 = __esm({
+  'node_modules/uuid/dist/esm-node/v5.js'() {
+    init_v35();
+    init_sha1();
+    v5 = v35_default('v5', 80, sha1_default);
+    v5_default = v5;
   }
 });
 
-// node_modules/uuid/dist/nil.js
-var require_nil = __commonJS({
-  'node_modules/uuid/dist/nil.js'(exports2) {
-    'use strict';
-    Object.defineProperty(exports2, '__esModule', {
-      value: true
-    });
-    exports2.default = void 0;
-    var _default = '00000000-0000-0000-0000-000000000000';
-    exports2.default = _default;
+// node_modules/uuid/dist/esm-node/nil.js
+var nil_default;
+var init_nil = __esm({
+  'node_modules/uuid/dist/esm-node/nil.js'() {
+    nil_default = '00000000-0000-0000-0000-000000000000';
   }
 });
 
-// node_modules/uuid/dist/version.js
-var require_version = __commonJS({
-  'node_modules/uuid/dist/version.js'(exports2) {
-    'use strict';
-    Object.defineProperty(exports2, '__esModule', {
-      value: true
-    });
-    exports2.default = void 0;
-    var _validate = _interopRequireDefault(require_validate());
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    function version(uuid) {
-      if (!(0, _validate.default)(uuid)) {
-        throw TypeError('Invalid UUID');
-      }
-      return parseInt(uuid.substr(14, 1), 16);
-    }
-    var _default = version;
-    exports2.default = _default;
+// node_modules/uuid/dist/esm-node/version.js
+function version(uuid) {
+  if (!validate_default(uuid)) {
+    throw TypeError('Invalid UUID');
+  }
+  return parseInt(uuid.substr(14, 1), 16);
+}
+var version_default;
+var init_version = __esm({
+  'node_modules/uuid/dist/esm-node/version.js'() {
+    init_validate();
+    version_default = version;
   }
 });
 
-// node_modules/uuid/dist/index.js
-var require_dist = __commonJS({
-  'node_modules/uuid/dist/index.js'(exports2) {
-    'use strict';
-    Object.defineProperty(exports2, '__esModule', {
-      value: true
-    });
-    Object.defineProperty(exports2, 'v1', {
-      enumerable: true,
-      get: function () {
-        return _v.default;
-      }
-    });
-    Object.defineProperty(exports2, 'v3', {
-      enumerable: true,
-      get: function () {
-        return _v2.default;
-      }
-    });
-    Object.defineProperty(exports2, 'v4', {
-      enumerable: true,
-      get: function () {
-        return _v3.default;
-      }
-    });
-    Object.defineProperty(exports2, 'v5', {
-      enumerable: true,
-      get: function () {
-        return _v4.default;
-      }
-    });
-    Object.defineProperty(exports2, 'NIL', {
-      enumerable: true,
-      get: function () {
-        return _nil.default;
-      }
-    });
-    Object.defineProperty(exports2, 'version', {
-      enumerable: true,
-      get: function () {
-        return _version.default;
-      }
-    });
-    Object.defineProperty(exports2, 'validate', {
-      enumerable: true,
-      get: function () {
-        return _validate.default;
-      }
-    });
-    Object.defineProperty(exports2, 'stringify', {
-      enumerable: true,
-      get: function () {
-        return _stringify.default;
-      }
-    });
-    Object.defineProperty(exports2, 'parse', {
-      enumerable: true,
-      get: function () {
-        return _parse.default;
-      }
-    });
-    var _v = _interopRequireDefault(require_v1());
-    var _v2 = _interopRequireDefault(require_v3());
-    var _v3 = _interopRequireDefault(require_v4());
-    var _v4 = _interopRequireDefault(require_v5());
-    var _nil = _interopRequireDefault(require_nil());
-    var _version = _interopRequireDefault(require_version());
-    var _validate = _interopRequireDefault(require_validate());
-    var _stringify = _interopRequireDefault(require_stringify());
-    var _parse = _interopRequireDefault(require_parse());
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
+// node_modules/uuid/dist/esm-node/index.js
+var esm_node_exports = {};
+__export(esm_node_exports, {
+  NIL: () => nil_default,
+  parse: () => parse_default,
+  stringify: () => stringify_default,
+  v1: () => v1_default,
+  v3: () => v3_default,
+  v4: () => v4_default,
+  v5: () => v5_default,
+  validate: () => validate_default,
+  version: () => version_default
+});
+var init_esm_node = __esm({
+  'node_modules/uuid/dist/esm-node/index.js'() {
+    init_v1();
+    init_v3();
+    init_v4();
+    init_v5();
+    init_nil();
+    init_version();
+    init_validate();
+    init_stringify();
+    init_parse();
   }
 });
 
@@ -707,7 +589,7 @@ var require_file_command = __commonJS({
     exports2.prepareKeyValueMessage = exports2.issueFileCommand = void 0;
     var fs = __importStar(require('fs'));
     var os = __importStar(require('os'));
-    var uuid_1 = require_dist();
+    var uuid_1 = (init_esm_node(), __toCommonJS(esm_node_exports));
     var utils_1 = require_utils();
     function issueFileCommand(command, message) {
       const filePath = process.env[`GITHUB_${command}`];
@@ -1178,12 +1060,12 @@ var require_lib = __commonJS({
     var RetryableHttpVerbs = ['OPTIONS', 'GET', 'DELETE', 'HEAD'];
     var ExponentialBackoffCeiling = 10;
     var ExponentialBackoffTimeSlice = 5;
-    var HttpClientError = class extends Error {
+    var HttpClientError = class _HttpClientError extends Error {
       constructor(message, statusCode) {
         super(message);
         this.name = 'HttpClientError';
         this.statusCode = statusCode;
-        Object.setPrototypeOf(this, HttpClientError.prototype);
+        Object.setPrototypeOf(this, _HttpClientError.prototype);
       }
     };
     exports2.HttpClientError = HttpClientError;
@@ -1291,6 +1173,10 @@ var require_lib = __commonJS({
           return this.request(verb, requestUrl, stream, additionalHeaders);
         });
       }
+      /**
+       * Gets a typed object from an endpoint
+       * Be aware that not found returns a null.  Other errors (4xx, 5xx) reject the promise
+       */
       getJson(requestUrl, additionalHeaders = {}) {
         return __awaiter(this, void 0, void 0, function* () {
           additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(
@@ -1353,6 +1239,11 @@ var require_lib = __commonJS({
           return this._processResponse(res, this.requestOptions);
         });
       }
+      /**
+       * Makes a raw http request.
+       * All other methods such as get, post, patch, and request ultimately call this.
+       * Prefer get, del, post and patch
+       */
       request(verb, requestUrl, data, headers) {
         return __awaiter(this, void 0, void 0, function* () {
           if (this._disposed) {
@@ -1432,12 +1323,20 @@ var require_lib = __commonJS({
           return response;
         });
       }
+      /**
+       * Needs to be called if keepAlive is set to true in request options.
+       */
       dispose() {
         if (this._agent) {
           this._agent.destroy();
         }
         this._disposed = true;
       }
+      /**
+       * Raw request.
+       * @param info
+       * @param data
+       */
       requestRaw(info, data) {
         return __awaiter(this, void 0, void 0, function* () {
           return new Promise((resolve, reject) => {
@@ -1454,6 +1353,12 @@ var require_lib = __commonJS({
           });
         });
       }
+      /**
+       * Raw request with callback.
+       * @param info
+       * @param data
+       * @param onResult
+       */
       requestRawWithCallback(info, data, onResult) {
         if (typeof data === 'string') {
           if (!info.options.headers) {
@@ -1497,6 +1402,11 @@ var require_lib = __commonJS({
           req.end();
         }
       }
+      /**
+       * Gets an http agent. This function is useful when you need an http agent that handles
+       * routing through a proxy server - depending upon the url and proxy environment variables.
+       * @param serverUrl  The server URL where the request will be sent. For example, https://api.github.com
+       */
       getAgent(serverUrl) {
         const parsedUrl = new URL(serverUrl);
         return this._getAgent(parsedUrl);
@@ -1720,6 +1630,7 @@ var require_auth = __commonJS({
           `${this.username}:${this.password}`
         ).toString('base64')}`;
       }
+      // This handler cannot handle 401
       canHandleAuthentication() {
         return false;
       }
@@ -1734,12 +1645,15 @@ var require_auth = __commonJS({
       constructor(token) {
         this.token = token;
       }
+      // currently implements pre-authorization
+      // TODO: support preAuth = false where it hooks on 401
       prepareRequest(options) {
         if (!options.headers) {
           throw Error('The request has no headers');
         }
         options.headers['Authorization'] = `Bearer ${this.token}`;
       }
+      // This handler cannot handle 401
       canHandleAuthentication() {
         return false;
       }
@@ -1754,6 +1668,8 @@ var require_auth = __commonJS({
       constructor(token) {
         this.token = token;
       }
+      // currently implements pre-authorization
+      // TODO: support preAuth = false where it hooks on 401
       prepareRequest(options) {
         if (!options.headers) {
           throw Error('The request has no headers');
@@ -1762,6 +1678,7 @@ var require_auth = __commonJS({
           'base64'
         )}`;
       }
+      // This handler cannot handle 401
       canHandleAuthentication() {
         return false;
       }
@@ -1815,7 +1732,7 @@ var require_oidc_utils = __commonJS({
     var http_client_1 = require_lib();
     var auth_1 = require_auth();
     var core_1 = require_core();
-    var OidcClient = class {
+    var OidcClient = class _OidcClient {
       static createHttpClient(allowRetry = true, maxRetry = 10) {
         const requestOptions = {
           allowRetries: allowRetry,
@@ -1823,7 +1740,7 @@ var require_oidc_utils = __commonJS({
         };
         return new http_client_1.HttpClient(
           'actions/oidc-client',
-          [new auth_1.BearerCredentialHandler(OidcClient.getRequestToken())],
+          [new auth_1.BearerCredentialHandler(_OidcClient.getRequestToken())],
           requestOptions
         );
       }
@@ -1844,7 +1761,7 @@ var require_oidc_utils = __commonJS({
       static getCall(id_token_url) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
-          const httpclient = OidcClient.createHttpClient();
+          const httpclient = _OidcClient.createHttpClient();
           const res = yield httpclient.getJson(id_token_url).catch(error => {
             throw new Error(`Failed to get ID Token. 
  
@@ -1862,13 +1779,13 @@ var require_oidc_utils = __commonJS({
       static getIDToken(audience) {
         return __awaiter(this, void 0, void 0, function* () {
           try {
-            let id_token_url = OidcClient.getIDTokenUrl();
+            let id_token_url = _OidcClient.getIDTokenUrl();
             if (audience) {
               const encodedAudience = encodeURIComponent(audience);
               id_token_url = `${id_token_url}&audience=${encodedAudience}`;
             }
             core_1.debug(`ID token url is ${id_token_url}`);
-            const id_token = yield OidcClient.getCall(id_token_url);
+            const id_token = yield _OidcClient.getCall(id_token_url);
             core_1.setSecret(id_token);
             return id_token;
           } catch (error) {
@@ -1932,6 +1849,12 @@ var require_summary = __commonJS({
       constructor() {
         this._buffer = '';
       }
+      /**
+       * Finds the summary file path from the environment, rejects if env var is not found or file does not exist
+       * Also checks r/w permissions.
+       *
+       * @returns step summary file path
+       */
       filePath() {
         return __awaiter(this, void 0, void 0, function* () {
           if (this._filePath) {
@@ -1954,6 +1877,15 @@ var require_summary = __commonJS({
           return this._filePath;
         });
       }
+      /**
+       * Wraps content in an HTML tag, adding any HTML attributes
+       *
+       * @param {string} tag HTML tag to wrap
+       * @param {string | null} content content within the tag
+       * @param {[attribute: string]: string} attrs key-value list of HTML attributes to add
+       *
+       * @returns {string} content wrapped in HTML element
+       */
       wrap(tag, content, attrs = {}) {
         const htmlAttrs = Object.entries(attrs)
           .map(([key, value]) => ` ${key}="${value}"`)
@@ -1963,6 +1895,13 @@ var require_summary = __commonJS({
         }
         return `<${tag}${htmlAttrs}>${content}</${tag}>`;
       }
+      /**
+       * Writes text in the buffer to the summary buffer file and empties buffer. Will append by default.
+       *
+       * @param {SummaryWriteOptions} [options] (optional) options for write operation
+       *
+       * @returns {Promise<Summary>} summary instance
+       */
       write(options) {
         return __awaiter(this, void 0, void 0, function* () {
           const overwrite = !!(options === null || options === void 0 ? void 0 : options.overwrite);
@@ -1972,39 +1911,95 @@ var require_summary = __commonJS({
           return this.emptyBuffer();
         });
       }
+      /**
+       * Clears the summary buffer and wipes the summary file
+       *
+       * @returns {Summary} summary instance
+       */
       clear() {
         return __awaiter(this, void 0, void 0, function* () {
           return this.emptyBuffer().write({ overwrite: true });
         });
       }
+      /**
+       * Returns the current summary buffer as a string
+       *
+       * @returns {string} string of summary buffer
+       */
       stringify() {
         return this._buffer;
       }
+      /**
+       * If the summary buffer is empty
+       *
+       * @returns {boolen} true if the buffer is empty
+       */
       isEmptyBuffer() {
         return this._buffer.length === 0;
       }
+      /**
+       * Resets the summary buffer without writing to summary file
+       *
+       * @returns {Summary} summary instance
+       */
       emptyBuffer() {
         this._buffer = '';
         return this;
       }
+      /**
+       * Adds raw text to the summary buffer
+       *
+       * @param {string} text content to add
+       * @param {boolean} [addEOL=false] (optional) append an EOL to the raw text (default: false)
+       *
+       * @returns {Summary} summary instance
+       */
       addRaw(text, addEOL = false) {
         this._buffer += text;
         return addEOL ? this.addEOL() : this;
       }
+      /**
+       * Adds the operating system-specific end-of-line marker to the buffer
+       *
+       * @returns {Summary} summary instance
+       */
       addEOL() {
         return this.addRaw(os_1.EOL);
       }
+      /**
+       * Adds an HTML codeblock to the summary buffer
+       *
+       * @param {string} code content to render within fenced code block
+       * @param {string} lang (optional) language to syntax highlight code
+       *
+       * @returns {Summary} summary instance
+       */
       addCodeBlock(code, lang) {
         const attrs = Object.assign({}, lang && { lang });
         const element = this.wrap('pre', this.wrap('code', code), attrs);
         return this.addRaw(element).addEOL();
       }
+      /**
+       * Adds an HTML list to the summary buffer
+       *
+       * @param {string[]} items list of items to render
+       * @param {boolean} [ordered=false] (optional) if the rendered list should be ordered or not (default: false)
+       *
+       * @returns {Summary} summary instance
+       */
       addList(items, ordered = false) {
         const tag = ordered ? 'ol' : 'ul';
         const listItems = items.map(item => this.wrap('li', item)).join('');
         const element = this.wrap(tag, listItems);
         return this.addRaw(element).addEOL();
       }
+      /**
+       * Adds an HTML table to the summary buffer
+       *
+       * @param {SummaryTableCell[]} rows table rows
+       *
+       * @returns {Summary} summary instance
+       */
       addTable(rows) {
         const tableBody = rows
           .map(row => {
@@ -2028,35 +2023,86 @@ var require_summary = __commonJS({
         const element = this.wrap('table', tableBody);
         return this.addRaw(element).addEOL();
       }
+      /**
+       * Adds a collapsable HTML details element to the summary buffer
+       *
+       * @param {string} label text for the closed state
+       * @param {string} content collapsable content
+       *
+       * @returns {Summary} summary instance
+       */
       addDetails(label, content) {
         const element = this.wrap('details', this.wrap('summary', label) + content);
         return this.addRaw(element).addEOL();
       }
+      /**
+       * Adds an HTML image tag to the summary buffer
+       *
+       * @param {string} src path to the image you to embed
+       * @param {string} alt text description of the image
+       * @param {SummaryImageOptions} options (optional) addition image attributes
+       *
+       * @returns {Summary} summary instance
+       */
       addImage(src, alt, options) {
         const { width, height } = options || {};
         const attrs = Object.assign(Object.assign({}, width && { width }), height && { height });
         const element = this.wrap('img', null, Object.assign({ src, alt }, attrs));
         return this.addRaw(element).addEOL();
       }
+      /**
+       * Adds an HTML section heading element
+       *
+       * @param {string} text heading text
+       * @param {number | string} [level=1] (optional) the heading level, default: 1
+       *
+       * @returns {Summary} summary instance
+       */
       addHeading(text, level) {
         const tag = `h${level}`;
         const allowedTag = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag) ? tag : 'h1';
         const element = this.wrap(allowedTag, text);
         return this.addRaw(element).addEOL();
       }
+      /**
+       * Adds an HTML thematic break (<hr>) to the summary buffer
+       *
+       * @returns {Summary} summary instance
+       */
       addSeparator() {
         const element = this.wrap('hr', null);
         return this.addRaw(element).addEOL();
       }
+      /**
+       * Adds an HTML line break (<br>) to the summary buffer
+       *
+       * @returns {Summary} summary instance
+       */
       addBreak() {
         const element = this.wrap('br', null);
         return this.addRaw(element).addEOL();
       }
+      /**
+       * Adds an HTML blockquote to the summary buffer
+       *
+       * @param {string} text quote text
+       * @param {string} cite (optional) citation url
+       *
+       * @returns {Summary} summary instance
+       */
       addQuote(text, cite) {
         const attrs = Object.assign({}, cite && { cite });
         const element = this.wrap('blockquote', text, attrs);
         return this.addRaw(element).addEOL();
       }
+      /**
+       * Adds an HTML anchor tag to the summary buffer
+       *
+       * @param {string} text link text/content
+       * @param {string} href hyperlink
+       *
+       * @returns {Summary} summary instance
+       */
       addLink(text, href) {
         const element = this.wrap('a', text, { href });
         return this.addRaw(element).addEOL();
@@ -2444,6 +2490,9 @@ var require_git_commands = __commonJS({
       return processResult.stdout.toString().trim();
     }
     module2.exports = {
+      /**
+       * @returns {string[]}
+       */
       listTags: (prefix, fallbackToNoPrefixSearch2) => {
         let args;
         if (prefix && prefix.length > 0) {
@@ -2479,6 +2528,9 @@ ${tags}
           );
         }
       },
+      /**
+       * @returns {boolean} true when ancestorCommitish is in the history of descendantCommitish
+       */
       isAncestor: (ancestorCommitish, descendantCommitish) => {
         let processResult = spawnSync('git', [
           'merge-base',
@@ -2492,12 +2544,15 @@ ${tags}
           throw new Error('Failed running git.');
         }
       },
+      /**
+       * @returns {{abbreviatedCommitHash: string, authorDate: Date, committerDate: Date}}
+       */
       commitMetadata: committish => {
         const gitOutput = git('log', ['-1', '--format=%h%n%at%n%ct', committish]);
         const lines = gitOutput.split('\n');
         const shortHash = lines[0];
-        const authorDate = new Date(+(lines[1] + '000'));
-        const committerDate = new Date(+(lines[2] + '000'));
+        const authorDate = /* @__PURE__ */ new Date(+(lines[1] + '000'));
+        const committerDate = /* @__PURE__ */ new Date(+(lines[2] + '000'));
         return {
           abbreviatedCommitHash: shortHash,
           authorDate,
@@ -2517,10 +2572,10 @@ ${tags}
             abbreviatedCommitHash: props[1],
             authorName: props[2],
             authorEmail: props[3],
-            authorDate: new Date(+(props[4] + '000')),
+            authorDate: /* @__PURE__ */ new Date(+(props[4] + '000')),
             committerName: props[5],
             committerEmail: props[6],
-            committerDate: new Date(+(props[7] + '000')),
+            committerDate: /* @__PURE__ */ new Date(+(props[7] + '000')),
             rawBody: props[8],
             commitNotes: props[9]
           };
@@ -2535,7 +2590,7 @@ var require_constants = __commonJS({
   'node_modules/semver/internal/constants.js'(exports2, module2) {
     var SEMVER_SPEC_VERSION = '2.0.0';
     var MAX_LENGTH = 256;
-    var MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER || 9007199254740991;
+    var MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER /* istanbul ignore next */ || 9007199254740991;
     var MAX_SAFE_COMPONENT_LENGTH = 16;
     var RELEASE_TYPES = [
       'major',
@@ -2730,33 +2785,33 @@ var require_semver = __commonJS({
     var { safeRe: re, t } = require_re();
     var parseOptions = require_parse_options();
     var { compareIdentifiers } = require_identifiers();
-    var SemVer = class {
-      constructor(version, options) {
+    var SemVer = class _SemVer {
+      constructor(version2, options) {
         options = parseOptions(options);
-        if (version instanceof SemVer) {
+        if (version2 instanceof _SemVer) {
           if (
-            version.loose === !!options.loose &&
-            version.includePrerelease === !!options.includePrerelease
+            version2.loose === !!options.loose &&
+            version2.includePrerelease === !!options.includePrerelease
           ) {
-            return version;
+            return version2;
           } else {
-            version = version.version;
+            version2 = version2.version;
           }
-        } else if (typeof version !== 'string') {
-          throw new TypeError(`Invalid version. Must be a string. Got type "${typeof version}".`);
+        } else if (typeof version2 !== 'string') {
+          throw new TypeError(`Invalid version. Must be a string. Got type "${typeof version2}".`);
         }
-        if (version.length > MAX_LENGTH) {
+        if (version2.length > MAX_LENGTH) {
           throw new TypeError(`version is longer than ${MAX_LENGTH} characters`);
         }
-        debug('SemVer', version, options);
+        debug('SemVer', version2, options);
         this.options = options;
         this.loose = !!options.loose;
         this.includePrerelease = !!options.includePrerelease;
-        const m = version.trim().match(options.loose ? re[t.LOOSE] : re[t.FULL]);
+        const m = version2.trim().match(options.loose ? re[t.LOOSE] : re[t.FULL]);
         if (!m) {
-          throw new TypeError(`Invalid Version: ${version}`);
+          throw new TypeError(`Invalid Version: ${version2}`);
         }
-        this.raw = version;
+        this.raw = version2;
         this.major = +m[1];
         this.minor = +m[2];
         this.patch = +m[3];
@@ -2797,11 +2852,11 @@ var require_semver = __commonJS({
       }
       compare(other) {
         debug('SemVer.compare', this.version, this.options, other);
-        if (!(other instanceof SemVer)) {
+        if (!(other instanceof _SemVer)) {
           if (typeof other === 'string' && other === this.version) {
             return 0;
           }
-          other = new SemVer(other, this.options);
+          other = new _SemVer(other, this.options);
         }
         if (other.version === this.version) {
           return 0;
@@ -2809,8 +2864,8 @@ var require_semver = __commonJS({
         return this.compareMain(other) || this.comparePre(other);
       }
       compareMain(other) {
-        if (!(other instanceof SemVer)) {
-          other = new SemVer(other, this.options);
+        if (!(other instanceof _SemVer)) {
+          other = new _SemVer(other, this.options);
         }
         return (
           compareIdentifiers(this.major, other.major) ||
@@ -2819,8 +2874,8 @@ var require_semver = __commonJS({
         );
       }
       comparePre(other) {
-        if (!(other instanceof SemVer)) {
-          other = new SemVer(other, this.options);
+        if (!(other instanceof _SemVer)) {
+          other = new _SemVer(other, this.options);
         }
         if (this.prerelease.length && !other.prerelease.length) {
           return -1;
@@ -2848,8 +2903,8 @@ var require_semver = __commonJS({
         } while (++i);
       }
       compareBuild(other) {
-        if (!(other instanceof SemVer)) {
-          other = new SemVer(other, this.options);
+        if (!(other instanceof _SemVer)) {
+          other = new _SemVer(other, this.options);
         }
         let i = 0;
         do {
@@ -2869,6 +2924,8 @@ var require_semver = __commonJS({
           }
         } while (++i);
       }
+      // preminor will bump the version up to the next minor release, and immediately
+      // down to pre-release. premajor and prepatch work the same way.
       inc(release, identifier, identifierBase) {
         switch (release) {
           case 'premajor':
@@ -2889,6 +2946,8 @@ var require_semver = __commonJS({
             this.inc('patch', identifier, identifierBase);
             this.inc('pre', identifier, identifierBase);
             break;
+          // If the input is a non-prerelease version, this acts the same as
+          // prepatch.
           case 'prerelease':
             if (this.prerelease.length === 0) {
               this.inc('patch', identifier, identifierBase);
@@ -2916,6 +2975,8 @@ var require_semver = __commonJS({
             }
             this.prerelease = [];
             break;
+          // This probably shouldn't be used publicly.
+          // 1.0.0 'pre' would become 1.0.0-0 which is the wrong direction.
           case 'pre': {
             const base = Number(identifierBase) ? 1 : 0;
             if (!identifier && identifierBase === false) {
@@ -2968,15 +3029,15 @@ var require_semver = __commonJS({
 });
 
 // node_modules/semver/functions/parse.js
-var require_parse2 = __commonJS({
+var require_parse = __commonJS({
   'node_modules/semver/functions/parse.js'(exports2, module2) {
     var SemVer = require_semver();
-    var parse = (version, options, throwErrors = false) => {
-      if (version instanceof SemVer) {
-        return version;
+    var parse2 = (version2, options, throwErrors = false) => {
+      if (version2 instanceof SemVer) {
+        return version2;
       }
       try {
-        return new SemVer(version, options);
+        return new SemVer(version2, options);
       } catch (er) {
         if (!throwErrors) {
           return null;
@@ -2984,16 +3045,16 @@ var require_parse2 = __commonJS({
         throw er;
       }
     };
-    module2.exports = parse;
+    module2.exports = parse2;
   }
 });
 
 // node_modules/semver/functions/valid.js
 var require_valid = __commonJS({
   'node_modules/semver/functions/valid.js'(exports2, module2) {
-    var parse = require_parse2();
-    var valid = (version, options) => {
-      const v = parse(version, options);
+    var parse2 = require_parse();
+    var valid = (version2, options) => {
+      const v = parse2(version2, options);
       return v ? v.version : null;
     };
     module2.exports = valid;
@@ -3003,9 +3064,9 @@ var require_valid = __commonJS({
 // node_modules/semver/functions/clean.js
 var require_clean = __commonJS({
   'node_modules/semver/functions/clean.js'(exports2, module2) {
-    var parse = require_parse2();
-    var clean = (version, options) => {
-      const s = parse(version.trim().replace(/^[=v]+/, ''), options);
+    var parse2 = require_parse();
+    var clean = (version2, options) => {
+      const s = parse2(version2.trim().replace(/^[=v]+/, ''), options);
       return s ? s.version : null;
     };
     module2.exports = clean;
@@ -3016,14 +3077,14 @@ var require_clean = __commonJS({
 var require_inc = __commonJS({
   'node_modules/semver/functions/inc.js'(exports2, module2) {
     var SemVer = require_semver();
-    var inc = (version, release, options, identifier, identifierBase) => {
+    var inc = (version2, release, options, identifier, identifierBase) => {
       if (typeof options === 'string') {
         identifierBase = identifier;
         identifier = options;
         options = void 0;
       }
       try {
-        return new SemVer(version instanceof SemVer ? version.version : version, options).inc(
+        return new SemVer(version2 instanceof SemVer ? version2.version : version2, options).inc(
           release,
           identifier,
           identifierBase
@@ -3039,17 +3100,17 @@ var require_inc = __commonJS({
 // node_modules/semver/functions/diff.js
 var require_diff = __commonJS({
   'node_modules/semver/functions/diff.js'(exports2, module2) {
-    var parse = require_parse2();
+    var parse2 = require_parse();
     var diff = (version1, version2) => {
-      const v1 = parse(version1, null, true);
-      const v2 = parse(version2, null, true);
-      const comparison = v1.compare(v2);
+      const v12 = parse2(version1, null, true);
+      const v2 = parse2(version2, null, true);
+      const comparison = v12.compare(v2);
       if (comparison === 0) {
         return null;
       }
       const v1Higher = comparison > 0;
-      const highVersion = v1Higher ? v1 : v2;
-      const lowVersion = v1Higher ? v2 : v1;
+      const highVersion = v1Higher ? v12 : v2;
+      const lowVersion = v1Higher ? v2 : v12;
       const highHasPre = !!highVersion.prerelease.length;
       const lowHasPre = !!lowVersion.prerelease.length;
       if (lowHasPre && !highHasPre) {
@@ -3065,13 +3126,13 @@ var require_diff = __commonJS({
         return 'major';
       }
       const prefix = highHasPre ? 'pre' : '';
-      if (v1.major !== v2.major) {
+      if (v12.major !== v2.major) {
         return prefix + 'major';
       }
-      if (v1.minor !== v2.minor) {
+      if (v12.minor !== v2.minor) {
         return prefix + 'minor';
       }
-      if (v1.patch !== v2.patch) {
+      if (v12.patch !== v2.patch) {
         return prefix + 'patch';
       }
       return 'prerelease';
@@ -3110,9 +3171,9 @@ var require_patch = __commonJS({
 // node_modules/semver/functions/prerelease.js
 var require_prerelease = __commonJS({
   'node_modules/semver/functions/prerelease.js'(exports2, module2) {
-    var parse = require_parse2();
-    var prerelease = (version, options) => {
-      const parsed = parse(version, options);
+    var parse2 = require_parse();
+    var prerelease = (version2, options) => {
+      const parsed = parse2(version2, options);
       return parsed && parsed.prerelease.length ? parsed.prerelease : null;
     };
     module2.exports = prerelease;
@@ -3284,27 +3345,27 @@ var require_cmp = __commonJS({
 var require_coerce = __commonJS({
   'node_modules/semver/functions/coerce.js'(exports2, module2) {
     var SemVer = require_semver();
-    var parse = require_parse2();
+    var parse2 = require_parse();
     var { safeRe: re, t } = require_re();
-    var coerce = (version, options) => {
-      if (version instanceof SemVer) {
-        return version;
+    var coerce = (version2, options) => {
+      if (version2 instanceof SemVer) {
+        return version2;
       }
-      if (typeof version === 'number') {
-        version = String(version);
+      if (typeof version2 === 'number') {
+        version2 = String(version2);
       }
-      if (typeof version !== 'string') {
+      if (typeof version2 !== 'string') {
         return null;
       }
       options = options || {};
       let match = null;
       if (!options.rtl) {
-        match = version.match(re[t.COERCE]);
+        match = version2.match(re[t.COERCE]);
       } else {
         let next;
         while (
-          (next = re[t.COERCERTL].exec(version)) &&
-          (!match || match.index + match[0].length !== version.length)
+          (next = re[t.COERCERTL].exec(version2)) &&
+          (!match || match.index + match[0].length !== version2.length)
         ) {
           if (!match || next.index + next[0].length !== match.index + match[0].length) {
             match = next;
@@ -3316,7 +3377,7 @@ var require_coerce = __commonJS({
       if (match === null) {
         return null;
       }
-      return parse(`${match[2]}.${match[3] || '0'}.${match[4] || '0'}`, options);
+      return parse2(`${match[2]}.${match[3] || '0'}.${match[4] || '0'}`, options);
     };
     module2.exports = coerce;
   }
@@ -3741,6 +3802,7 @@ var require_lru_cache = __commonJS({
         this[UPDATE_AGE_ON_GET] = options.updateAgeOnGet || false;
         this.reset();
       }
+      // resize the cache when the max changes.
       set max(mL) {
         if (typeof mL !== 'number' || mL < 0)
           throw new TypeError('max must be a non-negative number');
@@ -3764,6 +3826,7 @@ var require_lru_cache = __commonJS({
       get maxAge() {
         return this[MAX_AGE];
       }
+      // resize the cache when the lengthCalculator changes.
       set lengthCalculator(lC) {
         if (typeof lC !== 'function') lC = naiveLength;
         if (lC !== this[LENGTH_CALCULATOR]) {
@@ -3811,7 +3874,7 @@ var require_lru_cache = __commonJS({
         if (this[DISPOSE] && this[LRU_LIST] && this[LRU_LIST].length) {
           this[LRU_LIST].forEach(hit => this[DISPOSE](hit.key, hit.value));
         }
-        this[CACHE] = new Map();
+        this[CACHE] = /* @__PURE__ */ new Map();
         this[LRU_LIST] = new Yallist();
         this[LENGTH] = 0;
       }
@@ -3968,17 +4031,17 @@ var require_lru_cache = __commonJS({
 // node_modules/semver/classes/range.js
 var require_range = __commonJS({
   'node_modules/semver/classes/range.js'(exports2, module2) {
-    var Range = class {
+    var Range = class _Range {
       constructor(range, options) {
         options = parseOptions(options);
-        if (range instanceof Range) {
+        if (range instanceof _Range) {
           if (
             range.loose === !!options.loose &&
             range.includePrerelease === !!options.includePrerelease
           ) {
             return range;
           } else {
-            return new Range(range.raw, options);
+            return new _Range(range.raw, options);
           }
         }
         if (range instanceof Comparator) {
@@ -4054,7 +4117,7 @@ var require_range = __commonJS({
           });
         }
         debug('range list', rangeList);
-        const rangeMap = new Map();
+        const rangeMap = /* @__PURE__ */ new Map();
         const comparators = rangeList.map(comp => new Comparator(comp, this.options));
         for (const comp of comparators) {
           if (isNullSet(comp)) {
@@ -4070,7 +4133,7 @@ var require_range = __commonJS({
         return result;
       }
       intersects(range, options) {
-        if (!(range instanceof Range)) {
+        if (!(range instanceof _Range)) {
           throw new TypeError('a Range is required');
         }
         return this.set.some(thisComparators => {
@@ -4089,19 +4152,20 @@ var require_range = __commonJS({
           );
         });
       }
-      test(version) {
-        if (!version) {
+      // if ANY of the sets match ALL of its comparators, then pass
+      test(version2) {
+        if (!version2) {
           return false;
         }
-        if (typeof version === 'string') {
+        if (typeof version2 === 'string') {
           try {
-            version = new SemVer(version, this.options);
+            version2 = new SemVer(version2, this.options);
           } catch (er) {
             return false;
           }
         }
         for (let i = 0; i < this.set.length; i++) {
-          if (testSet(this.set[i], version, this.options)) {
+          if (testSet(this.set[i], version2, this.options)) {
             return true;
           }
         }
@@ -4320,13 +4384,13 @@ var require_range = __commonJS({
       }
       return `${from} ${to}`.trim();
     };
-    var testSet = (set, version, options) => {
+    var testSet = (set, version2, options) => {
       for (let i = 0; i < set.length; i++) {
-        if (!set[i].test(version)) {
+        if (!set[i].test(version2)) {
           return false;
         }
       }
-      if (version.prerelease.length && !options.includePrerelease) {
+      if (version2.prerelease.length && !options.includePrerelease) {
         for (let i = 0; i < set.length; i++) {
           debug(set[i].semver);
           if (set[i].semver === Comparator.ANY) {
@@ -4335,9 +4399,9 @@ var require_range = __commonJS({
           if (set[i].semver.prerelease.length > 0) {
             const allowed = set[i].semver;
             if (
-              allowed.major === version.major &&
-              allowed.minor === version.minor &&
-              allowed.patch === version.patch
+              allowed.major === version2.major &&
+              allowed.minor === version2.minor &&
+              allowed.patch === version2.patch
             ) {
               return true;
             }
@@ -4354,13 +4418,13 @@ var require_range = __commonJS({
 var require_comparator = __commonJS({
   'node_modules/semver/classes/comparator.js'(exports2, module2) {
     var ANY = Symbol('SemVer ANY');
-    var Comparator = class {
+    var Comparator = class _Comparator {
       static get ANY() {
         return ANY;
       }
       constructor(comp, options) {
         options = parseOptions(options);
-        if (comp instanceof Comparator) {
+        if (comp instanceof _Comparator) {
           if (comp.loose === !!options.loose) {
             return comp;
           } else {
@@ -4398,22 +4462,22 @@ var require_comparator = __commonJS({
       toString() {
         return this.value;
       }
-      test(version) {
-        debug('Comparator.test', version, this.options.loose);
-        if (this.semver === ANY || version === ANY) {
+      test(version2) {
+        debug('Comparator.test', version2, this.options.loose);
+        if (this.semver === ANY || version2 === ANY) {
           return true;
         }
-        if (typeof version === 'string') {
+        if (typeof version2 === 'string') {
           try {
-            version = new SemVer(version, this.options);
+            version2 = new SemVer(version2, this.options);
           } catch (er) {
             return false;
           }
         }
-        return cmp(version, this.operator, this.semver, this.options);
+        return cmp(version2, this.operator, this.semver, this.options);
       }
       intersects(comp, options) {
-        if (!(comp instanceof Comparator)) {
+        if (!(comp instanceof _Comparator)) {
           throw new TypeError('a Comparator is required');
         }
         if (this.operator === '') {
@@ -4481,13 +4545,13 @@ var require_comparator = __commonJS({
 var require_satisfies = __commonJS({
   'node_modules/semver/functions/satisfies.js'(exports2, module2) {
     var Range = require_range();
-    var satisfies = (version, range, options) => {
+    var satisfies = (version2, range, options) => {
       try {
         range = new Range(range, options);
       } catch (er) {
         return false;
       }
-      return range.test(version);
+      return range.test(version2);
     };
     module2.exports = satisfies;
   }
@@ -4595,6 +4659,7 @@ var require_min_version = __commonJS({
                 compver.prerelease.push(0);
               }
               compver.raw = compver.format();
+            /* fallthrough */
             case '':
             case '>=':
               if (!setMin || gt(compver, setMin)) {
@@ -4604,6 +4669,7 @@ var require_min_version = __commonJS({
             case '<':
             case '<=':
               break;
+            /* istanbul ignore next */
             default:
               throw new Error(`Unexpected operation: ${comparator.operator}`);
           }
@@ -4648,8 +4714,8 @@ var require_outside = __commonJS({
     var lt = require_lt();
     var lte = require_lte();
     var gte = require_gte();
-    var outside = (version, range, hilo, options) => {
-      version = new SemVer(version, options);
+    var outside = (version2, range, hilo, options) => {
+      version2 = new SemVer(version2, options);
       range = new Range(range, options);
       let gtfn, ltefn, ltfn, comp, ecomp;
       switch (hilo) {
@@ -4670,7 +4736,7 @@ var require_outside = __commonJS({
         default:
           throw new TypeError('Must provide a hilo val of "<" or ">"');
       }
-      if (satisfies(version, range, options)) {
+      if (satisfies(version2, range, options)) {
         return false;
       }
       for (let i = 0; i < range.set.length; ++i) {
@@ -4692,9 +4758,9 @@ var require_outside = __commonJS({
         if (high.operator === comp || high.operator === ecomp) {
           return false;
         }
-        if ((!low.operator || low.operator === comp) && ltefn(version, low.semver)) {
+        if ((!low.operator || low.operator === comp) && ltefn(version2, low.semver)) {
           return false;
-        } else if (low.operator === ecomp && ltfn(version, low.semver)) {
+        } else if (low.operator === ecomp && ltfn(version2, low.semver)) {
           return false;
         }
       }
@@ -4708,7 +4774,7 @@ var require_outside = __commonJS({
 var require_gtr = __commonJS({
   'node_modules/semver/ranges/gtr.js'(exports2, module2) {
     var outside = require_outside();
-    var gtr = (version, range, options) => outside(version, range, '>', options);
+    var gtr = (version2, range, options) => outside(version2, range, '>', options);
     module2.exports = gtr;
   }
 });
@@ -4717,7 +4783,7 @@ var require_gtr = __commonJS({
 var require_ltr = __commonJS({
   'node_modules/semver/ranges/ltr.js'(exports2, module2) {
     var outside = require_outside();
-    var ltr = (version, range, options) => outside(version, range, '<', options);
+    var ltr = (version2, range, options) => outside(version2, range, '<', options);
     module2.exports = ltr;
   }
 });
@@ -4745,12 +4811,12 @@ var require_simplify = __commonJS({
       let first = null;
       let prev = null;
       const v = versions.sort((a, b) => compare(a, b, options));
-      for (const version of v) {
-        const included = satisfies(version, range, options);
+      for (const version2 of v) {
+        const included = satisfies(version2, range, options);
         if (included) {
-          prev = version;
+          prev = version2;
           if (!first) {
-            first = version;
+            first = version2;
           }
         } else {
           if (prev) {
@@ -4835,7 +4901,7 @@ var require_subset = __commonJS({
           dom = minimumVersion;
         }
       }
-      const eqSet = new Set();
+      const eqSet = /* @__PURE__ */ new Set();
       let gt, lt;
       for (const c of sub) {
         if (c.operator === '>' || c.operator === '>=') {
@@ -4971,7 +5037,7 @@ var require_semver2 = __commonJS({
     var constants = require_constants();
     var SemVer = require_semver();
     var identifiers = require_identifiers();
-    var parse = require_parse2();
+    var parse2 = require_parse();
     var valid = require_valid();
     var clean = require_clean();
     var inc = require_inc();
@@ -5009,7 +5075,7 @@ var require_semver2 = __commonJS({
     var simplifyRange = require_simplify();
     var subset = require_subset();
     module2.exports = {
-      parse,
+      parse: parse2,
       valid,
       clean,
       inc,
@@ -5059,20 +5125,30 @@ var require_semver2 = __commonJS({
 });
 
 // src/version.js
-var require_version2 = __commonJS({
+var require_version = __commonJS({
   'src/version.js'(exports2, module2) {
     var git = require_git_commands();
     var core2 = require_core();
     var semver = require_semver2();
     var SemVer = require_semver();
     var commitPatterns = {
-      major: [/\+semver:\s*(breaking|major)/i, /BREAKING CHANGES?:?/],
+      major: [
+        /\+semver:\s*(breaking|major)/i,
+        // e.g. +semver:breaking, +semver.major
+        /BREAKING CHANGES?:?/
+        // e.g. BREAKING CHANGE:, BREAKING CHANGES
+      ],
       minor: [
         /\+semver:\s*(feature|minor)/i,
+        // e.g. +semver:feature, +semver:minor
         /feat\([^)]*\):\s/,
+        // e.g. feat(area): something, feat(): something
         /feature\([^)]*\):\s/,
+        // e.g. feature(area): something, feature(): something
         /^feat:\s.+/m,
+        // e.g. feat: something (at the beginning of a line)
         /^feature:\s.+/m
+        // e.g. feature: something (at the beginning of a line)
       ]
     };
     function getPriorReleaseCommit(tagPrefix2, fallbackToNoPrefixSearch2) {
@@ -5166,8 +5242,10 @@ COMMIT NOTES: "${notes}"`);
       if (baseCommit === null) {
         priorReleaseVersion = '0.0.0';
         releaseType = defaultReleaseType2;
-        core2.info(`
-The base commit was empty.  Use the default for prior release version: ${priorReleaseVersion}`);
+        core2.info(
+          `
+The base commit was empty.  Use the default for prior release version: ${priorReleaseVersion}`
+        );
         core2.info(`
 Setting Release Type to '${releaseType}' based on empty base commit.`);
       } else {
@@ -5205,8 +5283,10 @@ The base commit was found.  The prior release version is: ${priorReleaseVersion}
       if (baseCommit === null) {
         priorReleaseVersion = '0.0.0';
         releaseType = defaultReleaseType2;
-        core2.info(`
-The base commit was empty.  Use the default for prior release version: ${priorReleaseVersion}`);
+        core2.info(
+          `
+The base commit was empty.  Use the default for prior release version: ${priorReleaseVersion}`
+        );
         core2.info(`
 Setting Release Type to '${releaseType}' based on empty base commit.`);
       } else {
@@ -5238,7 +5318,7 @@ The base commit was found.  The prior release version is: ${priorReleaseVersion}
 
 // src/main.js
 var core = require_core();
-var { nextReleaseVersion, nextPrereleaseVersion } = require_version2();
+var { nextReleaseVersion, nextPrereleaseVersion } = require_version();
 var requiredArgOptions = {
   required: true,
   trimWhitespace: true
