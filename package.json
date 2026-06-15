@@ -17,7 +17,7 @@
     "semver": "^7.5.2"
   },
   "devDependencies": {
-    "esbuild": "^0.25.0",
+    "esbuild": "^0.28.1",
     "install": "^0.13.0",
     "prettier": "^2.3.0"
   }
